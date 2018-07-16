@@ -71,31 +71,31 @@ python run.py
 
 ## Directory Structure
 ```
-|-- db			<= database files
-|-- logs			<= logs files
-|-- python_osrm	<= folder with python_osrm library files
-|-- redis		<= redis server configuration files
-|-- static		<= static files, css, fonts, javascript files
-|-- shapefiles	<= place to store your region’s borders shapefile
-|-- uploads	<= images upload folder
-|-- templates		<= html template files
-|-- admin	<= html template files for admin area
-|-- app_admin.py	<= python module where the admin views are defined
-|-- app_admin_function.py <= python module where the admin functions are defined
-|-- app_api.py		<= python module where the API functions and views are defined
-|-- app_core.py		<= core file with all the configuration variables
-|-- gunicorn.conf	<= gunicorn config file
-|-- ILS_testes_m_final_py3.cpython-36m-x86_64-linux-gnu.so <= Cython module of the ILS Heuristic algorythm
-|-- initdb.py		<= database creation file
-|-- manage.py		<= initializing the function manage migrate
-|-- models.py		<= database models
-|-- my_function_osrm.py	<= functions that use osrm
-|-- My_functions.py 		<= general functions
-|-- requirements.txt	<= installation libraries
-|-- run.py		<= project running file
-|-- settings.py 		<= settings like database path
-|-- SIIT_API.py		<= library to facilitate the use of the API by building URI
-|-- views.py 		<= manages the application’s views
+|-- db         # database files
+|-- logs			 # logs files
+|-- python_osrm   # folder with python_osrm library files
+|-- redis     # redis server configuration files
+|-- static		#static files, css, fonts, javascript files
+|   |-- shapefiles	# place to store your region’s borders shapefile
+|   |-- uploads	    # images upload folder
+|-- templates		    # html template files
+|   |-- admin	      # html template files for admin area
+|-- app_admin.py	  # python module where the admin views are defined
+|-- app_admin_function.py   # python module where the admin functions are defined
+|-- app_api.py		  # python module where the API functions and views are defined
+|-- app_core.py		  # core file with all the configuration variables
+|-- gunicorn.conf	  # gunicorn config file
+|-- ILS_testes_m_final_py3.cpython-36m-x86_64-linux-gnu.so  # Cython module of the ILS Heuristic algorythm
+|-- initdb.py		    # database creation file
+|-- manage.py		    # initializing the function manage migrate
+|-- models.py		    # database models
+|-- my_function_osrm.py	    # functions that use osrm
+|-- My_functions.py 		    # general functions
+|-- requirements.txt	      # installation libraries
+|-- run.py		      # project running file
+|-- settings.py 		# settings like database path
+|-- SIIT_API.py		  # library to facilitate the use of the API by building URI
+|-- views.py 		    # manages the application’s views
 ```
 
 ## Project Basic Functions
