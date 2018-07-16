@@ -70,6 +70,7 @@ python run.py
 ```
 
 ## Directory Structure
+```
 |-- db			<= database files
 |-- logs			<= logs files
 |-- python_osrm	<= folder with python_osrm library files
@@ -95,6 +96,7 @@ python run.py
 |-- settings.py 		<= settings like database path
 |-- SIIT_API.py		<= library to facilitate the use of the API by building URI
 |-- views.py 		<= manages the application’s views
+```
 
 ## Project Basic Functions
 Initially our project will allow you to create points of interest and routes between them. The frontend, in addition to describing and presenting the project, you can see the points of interest (POIS), your position on your map, also shows the routes created between POIS.
