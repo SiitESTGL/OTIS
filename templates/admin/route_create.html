@@ -1,0 +1,175 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <!-- Bootstrap Core CSS -->
+   <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.timepicker.css" />
+   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+
+     <style>
+        .my-error-class {
+            color:#FF0000;  /* red */
+            }
+            .my-valid-class {
+                color:#00CC00; /* green */
+            }
+     </style>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="container">
+    <div class="panel panel-primary col-md-10">
+        <div class="panel-heading">
+            <h3 class="panel-title">Create Routes</h3>
+        </div>
+
+        <div class="panel-body">
+             <form class="form-horizontal" name="addRoute" id="addRoute"
+                method="POST"
+                action="{{ url_for('.create_route') }}"
+                enctype="multipart/form-data"
+                role="form">
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Route Name</label>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="input_routename" name="input_routename">
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Mode of Travel</label>
+                <div class="col-md-2">
+                  <select class="form-control" id="mode_travel" name="mode_travel">
+                      <option  selected disabled>-Select-</option>
+                      <option value="driving">Driving</option>
+                      <option value="walking">Walking</option>
+                      <option value="bicycling">Bicycling</option>
+                  </select>
+                </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Poi's</label>
+
+                    <div class="route_create_wrap col-md-8 ">
+                      <input type="text" class="form-control"   name="start_pois_label" placeholder="Start Poi" data-field="1"/>
+                      <input type="hidden" class="form-control" name="start_pois_value[]" placeholder="POI ID" data-field ="1"/><br>
+                      <label class="my-error-class" name="start_pois_label-error2" data-field="1" style="display: none;">please, enter start poi name</label>
+
+
+                      <textarea class="form-control" placeholder="Description between these points (Language1)" rows="4"  name="input_descriptwopois_pt[]" datatype="text"></textarea>
+                      <br><textarea class="form-control" placeholder="Description between these points (Language2)" rows="4"  name="input_descriptwopois_en[]" datatype="text"></textarea>
+
+                       <!-- This hidden field -->
+                      <br><input type="text" class="form-control" name="end_pois_label" placeholder="End Poi" data-field="1"/>
+                      <input type="hidden" class="form-control" name="end_pois_value[]"placeholder="POI ID" data-field="1"/>
+                      <label class="my-error-class" name="end_pois_label-error2" data-field="1" style="display: none;">please, enter start poi name</label>
+                      <!-- End hidden field -->
+                        <br><label for="name" class="control-label">Is Sequence Valid?:</label>
+                            <input id="radio" type="radio"  name="sequence_review_radio1" value="1" checked="true">Yes
+                            <input id="radio" type="radio"  name="sequence_review_radio1" value="0">No      
+                        
+                     <br><button type="button" class="addNewField_btn btn-primary">Add Field</button>
+
+                 </div>
+                 </div>
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Is Circle Route?:</label>
+                <div class="col-md-4">
+                   <input type="radio"  name="typeRoute_radio" value="1">Yes
+                   <input type="radio"  name="typeRoute_radio" value="0" checked>No
+                </div>
+                </div>
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+                    <div id="hide-me"  class="col-md-8"  style="display: none">
+                        <textarea class="hideme form-control"  placeholder="Add description from last point to the start point (Language1)" rows="6"  name="input_descriptwopois_pt[]" datatype="text"></textarea>
+                        <textarea class="hideme form-control"  placeholder="Add description from last point to the start point (Language2)" rows="6"  name="input_descriptwopois_en[]" datatype="text"></textarea>
+                        <label for="name" class="control-label">Is Sequence Valid?:</label>
+                            <input id="radio" type="radio"  name="sequence_review_radio_circle" value="1" checked="true">Yes
+                            <input id="radio" type="radio"  name="sequence_review_radio_circle" value="0">No
+                    </div>
+                </div>
+
+
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Description</label>
+                    <div class="col-md-8">
+                      <textarea class="form-control" placeholder="Generic Description Language1" rows="8" id="input_routeDescript_pt" name="geral_routeDescript_pt" datatype="text"></textarea>
+                    </div>
+                 </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+                    <div class="col-md-8">
+                      <textarea class="form-control" placeholder="Generic Description Language2" rows="8" id="input_routeDescript_en" name="geral_routeDescript_en" datatype="text"></textarea>
+                    </div>
+                 </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Notes</label>
+                    <div class="col-md-6">
+                      <textarea class="form-control" placeholder="Notes" rows="4" id="route_notes" name="route_notes" datatype="text"></textarea>
+                    </div>
+                 </div>
+                 
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Route Image</label>
+                    <div class="col-md-4">
+                        <input type="file" class="file-upload"  id="route_image" name="route_image[]" >
+                    </div>
+                    <div class="col-sm-4" id="imageContainer" ></div>
+                    <button type="button" class="addNewimgField_btn btn-primary">Add New Field</button>
+
+                </div>
+
+                <!-- ADD Dynamic Fields Here-->
+                 <div class="form-group new_img_field ">
+
+                 </div> <!-- End timeField_wrap -->
+                 
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is the route complete?</label>
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio" value="1" checked>Yes
+                           <input type="radio"  name="route_state_radio" value="0">No
+                        </div>
+                    </div> 
+                 
+                    <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is the Language2 verified?</label>
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio2" value="1" checked>Yes
+                           <input type="radio"  name="route_state_radio2" value="0">No
+                        </div>
+                    </div> 
+
+                <div class="col-md-offset-4 col-md-4">
+                  <button type="submit" class="btn btn-primary" id="btnSave">Submit</button>
+                  <a href="{{ url_for('route.index') }}"><button type="button" class="btn btn-primary">Cancel</button></a>
+                 </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block tail %}
+   <script src="/static/js/jquery-1.12.4.js"></script>
+    <script src="/static/js/jquery.validate.js"></script>
+    <script src="/static/js/jquery.timepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="/static/js/maskedinput.min.js"></script>
+
+    <!-- Project Script -->
+    <script src="/static/route_create.js"></script>
+{% endblock %}
+

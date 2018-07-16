@@ -1,0 +1,84 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+    <div class="col-md-offset-4 col-md-4">
+       <form class="form-horizontal" name="addPOI" id="addPOI"
+           method="POST"
+           action="{{ url_for('.poi_distance') }}">
+           <button type="submit" class="btn btn-default" id="btnUpdate">Update</button>
+       </form> 
+       </div>
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }</style>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+   <table class="table table-hover" id="list_distance" cellspacing="0" width="100%">
+
+          <thead class="th" style="font-size: 90%">
+            <tr>
+              <th>ID</th>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>Trip Distance(<strong>Km</strong>)</th>
+              <th>Trip Duration</th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+
+          {% for value in my_colletion %}
+            <tr>
+              <td scope="row">{{ value.id }}</td>
+              <td>
+                  {{ value.Start_POI }} <!-- start POIs -->
+              <td>
+                  {{ value.End_POI  }} <!-- End POIs -->
+              </td>
+              <td>
+                  {% if value.Distances %}
+                  {{ value.Distances/1000 }}
+                  {% endif %}
+
+              </td>
+              <td>
+                  {% if value.Duration %}
+                  {{ convertdecimaltotime(value.Duration)  }}
+                  {% endif %}
+              </td>
+            </tr>
+
+          {% endfor %}
+
+          </tbody>
+      </table>
+{% endblock %}
+
+
+{% block tail %}
+
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#list_distance').DataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25
+        });
+
+    } );
+    </script>
+
+
+{% endblock %}

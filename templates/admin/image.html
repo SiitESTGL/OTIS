@@ -1,0 +1,150 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }
+
+        #thcreate{
+            text-align: left;
+        }
+    </style>
+{% endblock %}
+
+
+{% block page_content %}
+    <table class="table table-hover" id="img_list" cellspacing="0" width="100%">
+
+          <thead class="th" style="font-size: 90%" >
+            <tr>
+              <th>ID</th>
+              <th id="thcreate"><a href="{{ url_for('.create_image') }}"><button type="button" class="create_image">Create</button></a></th>
+              <th>States</th>
+              <th>Description</th>
+              <th>Images</th>
+              <th>Owner POI</th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+          {% for img in img %}
+              {% if img.copy_img %} <!-- if exist image shows table-->
+
+              <tr>
+              <td scope="row">{{ img.img_id }}</td>
+
+                <td>
+                  <a href="{{ url_for('.edit_image', img_id = img.img_id) }}"><button type="button" class="edit_image">Edit</button></a>
+                  <a href="{{ url_for('.delete_image', img_id =img.img_id) }}"><button type="button"  class="delete_image">Delete</button></a>
+                  <a href="{{ url_for('.crop_image', img_id =img.img_id) }}"><button type="button"  class="crop_image">Crop</button></a>
+              </td>
+
+
+              <td>
+                  <form method="POST"  class="radioForm" action="" role="form">
+                      <label class="checkbox-inline">
+                          <input type="checkbox" value="{{ img.img_id }}" name="checkbox" class="check-list-item" data-imgid ="{{ img.img_id }}" {% if img.img_check == 1 %}
+                            checked
+                          {% endif %}  >Hide(default show)
+                      </label>
+                  </form>
+              </td>
+              <td>{{ img.img_descrip| capitalize }}</td>
+              {% if img.copy_img %}
+                <td><img src="{{ url_for('static', filename='uploads/256px_' + img.original_img) }}" class="img-thumbnail" alt="" width="150" height="100"/></td> <!-- Image path -->
+              {% endif %}
+              <td>{{ img.img_owner| capitalize }}
+
+            </tr>
+
+              {% endif %}
+
+          {% endfor %}
+          </tbody>
+      </table>
+
+{% endblock %}
+
+
+{% block tail %}
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+
+
+    <script type="text/javascript">
+    $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
+    {
+    return this.api().column( col, {order:'index'} ).nodes().map( function ( td, i ) {
+        return $('input', td).prop('checked') ? '1' : '0';
+        } );
+    }    
+    
+    $(document).ready(function()
+    {
+        $('#img_list').dataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25,
+            "columns": [ 
+                null,
+                null,
+                { "orderDataType": "dom-checkbox" },
+                null,
+                null,
+                null
+                ]
+        });
+
+
+        // confirm box, before delete item
+        $(".delete_image").click(function () {
+            if(!confirm("Are you sure you want to delete this?")){
+                return false
+            }
+        });
+
+        var checkBox = $(".check-list-item");
+        checkBox.on("click", function()
+        {
+            var id = $(this).data("imgid");
+
+            var check = "";
+            if($(this).is(":checked")){
+                    check = 1; // Hides Image
+            }else{
+                check = 0; // default shows
+            }
+            check_state(check, id)
+        });
+
+        function check_state(check, id)
+        {
+            $.ajax({
+                    method: 'POST',
+                    url: '/admin/',
+                    cache: false,
+                    data: {
+                       img_id : id,
+                       check : check
+                    },
+            })
+            .success(function (msg) {
+                console.log(msg);
+            })
+            .error(function(error){
+                console.log(error);
+            })
+        }
+
+    } );
+    </script>
+
+{% endblock %}

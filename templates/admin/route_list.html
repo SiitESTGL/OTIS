@@ -1,0 +1,189 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }
+        #thcreate{
+            text-align: left;
+        }
+    </style>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <table class="table table-hover" id="route_list" cellspacing="0" width="100%">
+
+          <thead class="th"  style="font-size: 90%">
+            <tr>
+              <th>ID</th>
+              <th id="thcreate"><a href="{{ url_for('.create_route')}}"><button type="button" class="create_image">Create</button></a></th>
+              <th>Route Name</th>
+              <th>Mode Of Travel</th>
+              <th>Duration</th>
+              <th>Distances</th>
+              <th>Last Update</th>
+              <th>Created On</th>
+              <th>Route Verified</th>
+              <th>Language2 Reviewed</th>  
+
+
+            </tr>
+          </thead>
+
+          <tbody>
+          {% for item in route %}
+            <tr>
+              <td scope="row">{{ item.id }}</td>
+              <td>
+                  <a href="{{url_for('.edit_route', route_id = item.id)}}"><button type="button" class="edit_route">Edit</button></a>
+                  <a href="{{ url_for('.delete_route', route_id =item.id)}}"><button type="button"  class="delete_route">Delete</button></a>
+              </td>
+              <td>
+                  <a href="{{ url_for('.display_routes', route_id = item.id) }}">{{ item.route_name| capitalize }}</a>
+              </td>
+              <td>{{ item.mode_travel }}</td>
+              <td>{{ convertdecimaltotime(item.route_duration) }}</td>
+              <td>{{ item.route_distan/1000 }}</td>
+              <td>{{ date_time(item. date_route_updated) }}</td>
+              <td>{{ date_time(item.date_route_created_) }}</td>
+              <td>
+                  <form method="POST"  class="radioForm" action="" role="form">
+                      <label class="checkbox-inline">
+                          <input type="checkbox" value="{{ item.id }}" name="checkbox" class="check-list-item" data-routeid ="{{ item.id }}" {% if item.route_review == 1 %}
+                            checked
+                          {% endif %}  >Route verified
+                      </label>
+                  </form>
+              </td>
+              <td>
+                  <form method="POST"  class="radioForm" action="" role="form">
+                      <label class="checkbox-inline">
+                          <input type="checkbox" value="{{ item.id }}" name="checkbox" class="check-list-item2" data-routeid ="{{ item.id }}" {% if item.route_en_review == 1 %}
+                            checked
+                          {% endif %}  >Language2 reviewed
+                      </label>
+                  </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+
+{% endblock %}
+
+
+{% block tail %}
+
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+
+
+    <script type="text/javascript">
+        
+    $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
+    {
+    return this.api().column( col, {order:'index'} ).nodes().map( function ( td, i ) {
+        return $('input', td).prop('checked') ? '1' : '0';
+        } );
+    }
+    
+    $(document).ready(function()
+    {
+        $('#route_list').dataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25,
+            "columns": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                { "orderDataType": "dom-checkbox" },
+                { "orderDataType": "dom-checkbox" }
+                ]
+        });
+
+        $(".delete_route").click(function () {
+            if(!confirm("Are you sure you want to delete this?")){
+                return false
+            }
+        });
+        var checkBox = $(".check-list-item");
+        checkBox.on("click", function()
+        {
+            var id = $(this).data("routeid");
+
+            var check = "";
+            if($(this).is(":checked")){
+                    check = 1; // Validates and shows route
+            }else{
+                check = 0; // hides by default
+            }
+            check_state(check, id)
+        });
+        
+        var checkBox2 = $(".check-list-item2");
+        checkBox2.on("click", function()
+        {
+            var id = $(this).data("routeid");
+
+            var check = "";
+            if($(this).is(":checked")){
+                    check = 1; // Validates route's english state
+            }else{
+                check = 0; // hides by default
+            }
+            check_state2(check, id)
+        });
+
+        function check_state(check, id)
+        {
+            $.ajax({
+                    method: 'POST',
+                    url: "{{ url_for('.change_route_state') }}",
+                    cache: false,
+                    data: {
+                       route_id : id,
+                       check : check
+                    },
+            })
+            .success(function (msg) {
+                console.log(msg);
+            })
+            .error(function(error){
+                console.log(error);
+            })
+        }
+        
+        function check_state2(check, id)
+        {
+            $.ajax({
+                    method: 'POST',
+                    url: "{{ url_for('.change_route_state2') }}",
+                    cache: false,
+                    data: {
+                       route_id : id,
+                       check : check
+                    },
+            })
+            .success(function (msg) {
+                console.log(msg);
+            })
+            .error(function(error){
+                console.log(error);
+            })
+        }
+        } );
+    </script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }</style>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+    <table class="table table-hover" id="schedule_list" cellspacing="0" width="100%">
+
+          <thead class="th" style="font-size: 80%">
+            <tr>
+              <th rowspan="2">ID</th>
+              <th rowspan="2">POI Name</th>
+              <th colspan="2" style="text-align: center">Times</th>
+              <th rowspan="2">Duration</th>
+            </tr>
+            <tr>
+                <th>Open</th>
+                <th>Close</th>
+            </tr>
+          </thead>
+
+          <tbody>
+          {% for elem in schedule_info %}
+
+            <tr>
+                <td>{{ elem.poi_id }} </td>
+                <td> {{ elem.poi_name }} </td>
+
+                <td class="hour">
+                    {% for open_h in elem.get("poi_open_hour")  %}
+                    {{ convertdecimaltotime(open_h) }}<br>
+                     {% endfor %}
+                </td>
+                <td class="hour">
+                    {% for close_h in elem.get("poi_close_h")  %}
+                    {{ convertdecimaltotime(close_h) }} <br>
+                     {% endfor %}
+                </td>
+
+                <td class="hour">
+                  {% for duration in elem.get("poi_duration") %}
+                      {{ convertdecimaltotime(duration) }}<br>
+                  {% endfor %}
+              </td>
+
+            </tr>
+
+          {% endfor %}
+          </tbody>
+      </table>
+{% endblock %}
+
+
+{% block tail %}
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#schedule_list').DataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25
+        });
+    } );
+    </script>
+{% endblock %}

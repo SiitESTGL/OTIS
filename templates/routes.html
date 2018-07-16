@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+
+{% block heads %}
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery.timepicker.css"/>
+
+    <link rel="stylesheet" type="text/css" href="/static/css/leaflet.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/MarkerCluster.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/MarkerCluster.Default.css"/>
+
+    <script type="text/javascript">
+
+        var locale = String("{{g.locale}}")
+        var route_info = JSON.parse({{ route_info|tojson|safe }});
+        var driving_serv = String("{{ drive }}");
+        var walking_serv = String("{{ walk }}");
+
+    </script>
+<style>
+    label.Capitalize {
+        text-transform: capitalize;
+    }
+    
+    .well {
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        display:none;
+        margin:1em;
+    }
+    
+    .ui-autocomplete
+    {
+        padding: 0;
+        max-height: 250px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        background: white;
+        display:none;
+        margin:1em;
+        position:absolute;
+        cursor:default;
+        z-index:4000 !important
+    }
+    
+    .leaflet-control-container .leaflet-routing-container-hide 
+    {
+        display: none;
+    }
+    
+</style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        <div class="row">
+            <div class="box">
+                <div class="col-xs-12" id="center">
+                    <a name="mapa"></a>
+                    <hr>
+                    <h2 class="intro-text text-center">
+                        <strong>Project Routs</strong>
+                    </h2>
+                    <hr>
+                    
+                    <div class ="col-md-12">
+                        <br>
+                    </div>
+                        </div>
+                        </div>
+                    </div>
+                        
+                    <div class ="col-xs-12 caixa_mapa" id="left" style="z-index: 1">
+                        <div class="mapcontainer" style="height: 500px">
+                            <div id="map_canvas" style="width:100%; height:95%;"></div>
+                        </div>
+                    </div>
+                
+                            
+                    </div>
+
+        <div>If you find an inconsistency or have a suggestion, please contact us.</div>
+
+<div id="my_popup" class="well" style="max-width:44em;">
+
+</div>
+
+{% endblock %}
+
+{% block tail_content %}
+    <!-- jQuery -->
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/jquery.popupoverlay.js"></script>
+    <script src="/static/js/jquery-ui-1.12.1.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="/static/js/jquery.timepicker.js"></script>
+    <script type="text/javascript" src="/static/js/datepair.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.datepair.js"></script>
+
+    <script type="text/javascript" src="/static/js/leaflet.js"></script>
+    <script type="text/javascript" src="/static/js/leaflet.markercluster.js"></script>
+    <script src="/static/dist/leaflet-routing-machine.js"></script>
+    <script src="{{ url_for('static', filename='js/Leaflet.Icon.Glyph.js') }}"></script>
+
+    <!-- project script -->
+    <script type="text/javascript" src="{{ url_for('static', filename='routes.js') }}"></script>
+{% endblock %}
+

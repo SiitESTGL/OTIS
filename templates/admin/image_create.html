@@ -1,0 +1,154 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="container">
+        <div class="panel panel-primary col-md-10">
+            <div class="panel-heading">
+                <h3 class="panel-title">Create Image</h3>
+            </div>
+
+             <div class="panel-body">
+                <form class="form-horizontal", id="imageForm"
+                      method="POST"
+                      action="{{ url_for('.create_image') }}"
+                      enctype="multipart/form-data"
+                      role="form">
+
+                    <div class="form-group">
+                        <label for="img_descrip" class="col-sm-2 control-label">Description</label>
+
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" title="this field required" id="img_descrip"
+                                   name="img_descrip" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imageFile" class="col-sm-2 control-label">Upload Image</label>
+
+                        <div class="col-sm-4">
+                            <input type="file" class="file-upload"  id="imageFile" name="imageFile">
+                        </div>
+                        <div class="col-sm-4" id="imageContainer" ></div>
+                    </div>
+
+
+                    <div class="col-sm-offset-4 col-sm-8">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <a href="{{ url_for('.image') }}">
+                            <button type="button" class="btn btn-primary">Cancel</button>
+                        </a>
+                    </div>
+
+                </form>
+             </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block tail %}
+    <script src="/static/js/jquery-1.12.4.js"></script>
+    <script src="/static/js/jquery.validate.js"></script>
+    <script src="/static/js/jquery.timepicker.js"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function ()
+    {
+        // Validate Image Size
+        $.validator.addMethod // AddMethod(Function_name, function, message)
+        (
+                "minImageSize",
+                function( value, element, minSize){
+                    var result = $(element).data('imageSize')
+                    return ((result[0] || 0 ) > minSize[0] && (result[1] || 0 ) > minSize[1]);
+                },
+                function(minSize, element){
+                    var imagesize = $(element).data('imageSize');
+                    return (imagesize)
+                        ? ("Image Size must be greater than " + imagesize[0] + "x" +  imagesize[1] +  " pixels")
+                       : "Selected file is not  an image.";
+                }
+        );
+
+
+        var validator = $("#imageForm").validate(
+        {
+            rules:
+            {
+                imageFile:
+                {
+                    required: true,
+                    minImageSize: [842, 402]
+                }
+            },
+            messages:
+            {
+                imageFile:
+                {
+                    required: "You must insert an image."
+                },
+            }
+        });
+
+
+        var $submitBtn = $("#imageForm").find('button:submit'),
+        $imageFile = $('#imageFile'),
+        $imgContainer = $('#imageContainer');
+
+        // function get Image Size
+        $('#imageFile').change(function()
+        {
+              $imageFile.removeData('imageSize');
+              $imgContainer.hide().empty();
+
+              var file = this.files[0];
+
+              if (file.type.match(/image\/.*/))
+              {
+                $submitBtn.attr('disabled', true);
+
+                var reader = new FileReader();
+
+                reader.onload = function()
+                {
+                  var $img = $('<img />').attr({ src: reader.result });
+
+                  $img.on('load', function()
+                  {
+                    $imgContainer.append($img).show();
+                    var imageWidth = $img.width();
+                    var imageHeight = $img.height();
+                    var imageSize = [imageWidth, imageHeight]
+                    $imageFile.data('imageSize', imageSize);
+                    if ((imageSize[0] <= 842) || (imageSize[1] <= 402) )
+                        {
+                          $imgContainer.hide();
+                        }
+                    else
+                        {
+                          $img.css({ width: '400px', height: '200px' });
+                        }
+                    $submitBtn.attr('disabled', false);
+
+                    validator.element($imageFile);
+                  });
+                }
+                reader.readAsDataURL(file);
+              }
+              else
+              {
+                validator.element($imageFile);
+              }
+        });
+
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+
+    <style type="text/css">
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+
+    <!-- Jquery necessary for bootstrap javasccript plugins -->
+    <script src="/static/js/jquery-1.12.4.js"></script>
+    <script type="text/javascript">
+        var my_img = [];
+        {% for i in img_show %}
+            my_img.push('{{ i.copy_img }}') // File name
+        {% endfor %}
+
+        $(document).ready(function(){
+            var count = 5
+            for(var i=0 ; i< my_img.length ; i++)
+            {
+
+                $('<div class="item"><img class="img-responsive center-block" src="{{ url_for('static', filename='uploads/') }}'+my_img[i]+'" class="img-fluid"><div class="carousel-caption"></div></div>').appendTo('.carousel-inner');
+                if (i < 5)
+                {
+                    $('<li data-target="#carousel-example-generic" data-slide-to="'+i+'"></li>').appendTo('.carousel-indicators')
+                }
+
+            }
+            $('.item').first().addClass('active');
+            $('.carousel-indicators > li').first().addClass('active');
+            $('#carousel-example-generic').carousel({
+                interval: 5000 //changes the speed
+            });
+
+        });
+    </script>
+
+    <script type="text/javascript">
+        var setElementHeight = function () {
+            var height = $(window).height();
+            var height2 = height*0.45;
+            $('.autoheight').css('min-height', (height2));
+        };
+
+        $(window).on("resize", function () {
+            setElementHeight();
+        }).resize();
+    </script>
+{% endblock %}
+
+
+{% block page_content %}
+    {#  }{ super() }#}
+
+    <div class="box text-center">
+        <div class="center-block" style="width:843px; height:45%; background-color:#ccc;">
+            <div id="carousel-example-generic" class="autoheight carousel slide" data-ride="carousel">
+
+                <!-- Indicators ------------------------------------------------------------------------>
+                <ol class="carousel-indicators">
+                </ol>
+
+                <!-- Wrapper for slides ---------------------------------------------------------------->
+                <div class="carousel-inner">
+                    <!-- Slides  here -->
+                </div>
+
+                <!-- Controls -------------------------------------------------------------------------->
+                <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                    <span class="icon-prev"></span>
+                </a>
+                <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                    <span class="icon-next"></span>
+                </a>
+            </div>
+        </div>
+        <h2 class="brand-before">
+            <small>Welcome to</small>
+        </h2>
+        <h1 class="brand-name">Brand Name</h1>
+        <hr class="tagline-divider">
+
+    </div>
+{% endblock %}

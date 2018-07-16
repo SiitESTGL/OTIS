@@ -1,0 +1,10 @@
+README.md
+setup.py
+osrm/__init__.py
+osrm/core.py
+osrm/extra.py
+osrm.egg-info/PKG-INFO
+osrm.egg-info/SOURCES.txt
+osrm.egg-info/dependency_links.txt
+osrm.egg-info/requires.txt
+osrm.egg-info/top_level.txt

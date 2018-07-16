@@ -1,0 +1,138 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+    <div class="col-md-offset-4 col-md-4">
+
+       <button type="submit" class="btn btn-default" id="btnUpdate">Update</button>
+       </div>
+    <div id="progress"></div>
+
+    <script src="{{ url_for('static', filename='js/nanobar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script>
+            function start_long_task() {
+            // add task status elements
+            div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
+            $('#progress').append(div);
+
+            // create a progress bar
+            var nanobar = new Nanobar({
+                bg: '#44f',
+                target: div[0].childNodes[0]
+            });
+
+            // send ajax POST request to start background job
+            $.ajax({
+                type: 'POST',
+                url: '/longtask',
+                success: function(data, status, request) {
+                    status_url = request.getResponseHeader('Location');
+                    update_progress(status_url, nanobar, div[0]);
+                },
+                error: function() {
+                    alert('Unexpected error');
+                }
+            });
+        }
+        function update_progress(status_url, nanobar, status_div) {
+            // send GET request to status URL
+            $.getJSON(status_url, function(data) {
+                percent = parseInt(data['current'] * 100 / data['total']);
+                nanobar.go(percent);
+                $(status_div.childNodes[1]).text(percent + '%');
+                $(status_div.childNodes[2]).text(data['status']);
+                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+                    if ('result' in data) {
+                        $(status_div.childNodes[3]).text('Result: ' + data['result']);
+                    }
+                    else {
+                        $(status_div.childNodes[3]).text('Result: ' + data['state']);
+                    }
+                }
+                else {
+                    // rerun in 2 seconds
+                    setTimeout(function() {
+                        update_progress(status_url, nanobar, status_div);
+                    }, 2000);
+                }
+            });
+        }
+        $(function() {
+            $('#btnUpdate').click(start_long_task);
+        });
+    </script>
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }</style>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+   <table class="table table-hover" id="list_distance" cellspacing="0" width="100%">
+
+          <thead class="th" style="font-size: 90%">
+            <tr>
+              <th>ID</th>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>Trip Distance(<strong>Km</strong>)</th>
+              <th>Trip Duration</th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+
+          {% for value in my_colletion %}
+            <tr>
+              <td scope="row">{{ value.id }}</td>
+              <td>
+                  {{ value.Start_POI }} <!-- start POIs -->
+              <td>
+                  {{ value.End_POI  }} <!-- End POIs -->
+              </td>
+              <td>
+                  {% if value.Distances %}
+                  {{ value.Distances/1000 }}
+                  {% endif %}
+
+              </td>
+              <td>
+                  {% if value.Duration %}
+                  {{ convertdecimaltotime(value.Duration)  }}
+                  {% endif %}
+              </td>
+            </tr>
+
+          {% endfor %}
+
+          </tbody>
+      </table>
+{% endblock %}
+
+
+{% block tail %}
+
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#list_distance').DataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25
+        });
+
+    } );
+    </script>
+
+
+{% endblock %}

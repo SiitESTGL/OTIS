@@ -1,0 +1,1993 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }
+        #thcreate{
+            text-align: left;
+        }
+        .center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 50%;
+        }
+    </style>
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <hr>
+                <h2 class="intro-text text-center"><strong>Documentação</strong> da API
+                </h2>
+                <hr>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                Introdução
+                            </h4>
+                        </div>
+                         <div class="panel-body">
+                                Esta é a nossa área destinada a desenvolvedores. Aqui pode encontrar um conjunto de serviços web que permitem obter informação sobre Pontos de Interesse (POI’s) turísticos, percursos já existentes e algoritmos de geração automática de rotas turísticas. <br>
+                             <br>
+                             
+                             <img src="static/uploads/API2.png" class="img-thumbnail center" width="640" height="420"/>
+                                                          
+                             
+                             <div class="text-center">
+                                 <h6><strong>Fig1.</strong> Representação esquemática da API. <strong>(I)</strong> informação cedida pelos nossos Parceiros;<br>
+                                 <strong>(II)</strong> Sistema Inteligente de Informação Turística; <strong>(III)</strong> Utilização de serviços web por parte de terceiros;</h6>
+                             </div>
+                             <br>
+                             <h4><strong>A nossa API </strong></h4>
+                             <ul>
+<strong>(I)</strong>	Os conteúdos turísticos abrangentes são recolhidos através dos nossos parceiros, garantindo assim a validade e qualidade de toda a informação obtida.<br>
+
+<strong>(II)</strong>	Toda a informação, trabalhada e padronizada é armazenada numa base de dados. De forma a ter autonomia relativamente a serviços de Routing e mapeamento, na sua generalidade proprietários e sujeitos a restrições de utilização, foi igualmente instalado no servidor o Open Source Routing Machine (OSRM) (ver: <a href="http://project-osrm.org/" target="_blank">http://project-osrm.org/</a> ). O OSRM permite o cálculo de distâncias e rotas otimizadas entre POI’s, utilizando a informação geográfica livre do OpenStreetMap (ver: <a href="http://www.openstreetmap.org" target="_blank">www.openstreetmap.org </a>).<br>
+
+<strong>(III)</strong>	Ferramentas de consulta de POI’s, percursos e geração automática de rotas turísticas, são disponibilizadas a terceiros via servições web, permitindo a fácil inclusão da informação e funcionalidades nas suas aplicações. Estes dados são fornecidos em formato JSON.<br>
+                             </ul>
+<br>
+                             A utilização da API está sujeita à aceitação dos <a href="/api/tou" target="_blank">termos de utilização</a>. Para obter uma chave de autenticação deverá solicitar o formulário para verificação de Elegibilidade através do email <a href="mailto:siit@estgl.ipv.pt">siit@estgl.ipv.pt</a>, colocando no assunto: “API – solicitação de chave”.<br>
+                             <br>
+                             Para facilitar a utilização da nossa API, fornecemos uma biblioteca em Python que simplifica as chamadas feitas à API por parte do utilizador, pode saber mais <a href="https://github.com/SiitESTGL/API_Library" target="_blank">aqui</a>.<br>
+                             <br>
+<strong>Limite de utilização:</strong> Cada chave tem um limite de utilização de 100 chamadas por minuto. Caso este limite seja excedido irá devolver uma mensagem de erro com o status_code "<strong>429</strong>".
+                             <br>
+                             
+                             
+
+                         </div>
+                    </div>
+                    <h3><strong>Funções disponíveis</strong></h3>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">Função: Lista de POI’s a menos de uma distância geográfica fixa de um ponto dado</a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse">
+                            <div class="panel-body">
+                               Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto geográfico definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. <br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+<br>
+Parâmetros de entrada:<br>
+<ul>                                
+•	<strong>lat</strong>: latitude do ponto que o utilizador quer;<br>
+•	<strong>lon</strong>: longitude do ponto que o utilizador quer;<br>
+•	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: id do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>dist</strong>: distância máxima que o utilizador deseja em Quilómetros;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+</ul>
+<br>
+                                                                    <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e a distância máxima é de 5 Quilometros. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria e o id 17 (Torre de Moncorvo) no parametro de concelho, irá devolver todos os Monumentos e locais de interesse no concelho de Torre de Moncorvo que se encontram a 5 Quilometros do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>conc</strong>=<em>17</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse em Torre de Moncorvo que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "Distance": 4.436058144661504,
+      "id": 199,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_140008.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_135252.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_134543.jpg"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "A Igreja de Nossa Senhora da Assunção, Matriz da vila de Torre de Moncorvo, ergue-se no local de um templo paroquial primitivo da Baixa Idade Média. O ambicioso e majestoso monumento que hoje vemos iniciou-se em 1544 segundo um plano pouco ortodoxo que concebeu a entrada principal a Nascente e o altar-mor a poente, numa clara sujeição da obra ao traçado urbano da vila. É uma obra maneirista, austera e de linhas severas, com contrafortes pronunciados e dominada pela exuberância e altura da fachada principal. Esta divide-se em dois corpos verticais sobrepostos: o inferior, que corresponde ao portal principal e às duas ordens de nichos que o sobrepujam, e o superior, formado integralmente pela maciça torre sineira. \r\nO interior do templo encontra-se organizado segundo o esquema de hallenkirchen (igrejas-salão), sendo os cinco tramos das naves abobadados à mesma altura. Nas suas proporções e disposição geral, o interior revela a mesma austeridade e racionalidade do exterior, como se testemunha na longa série de tramos do corpo da igreja simetricamente abobadados. A capela-mor ostenta na parede fundeira um retábulo barroco de talha dourada, e nas paredes laterais frescos alusivos a cenas bíblicas, entre as quais uma \"Última Ceia\".",
+      "poi_lat": 41.173333,
+      "poi_lon": -7.052778,
+      "poi_name": "Igreja Matriz de Torre de Moncorvo",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/449/igreja-de-nossa-senhora-da-assuno-matriz-de-torre-de-moncorvo                http://www.patrimoniocultural.gov.pt"
+    },
+    {
+      "Distance": 4.220904662346093,
+      "id": 200,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "É um dos mais belos exemplares de arquitectura românica/gótica, classificada como M.N e Fachada com portal gótico. Nos muros, observam-se várias figuras esculpidas com representações religiosas, distinguindo-se na fachada, as “três marias”. No interior destacam-se as pinturas murais quinhentistas.",
+      "poi_lat": 41.274167,
+      "poi_lon": -7.05,
+      "poi_name": "Igreja românica de Adeganha",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/451/igreja-de-santiago-maior-matriz-de-adeganha    http://www.patrimoniocultural.gov.pt"
+    },
+    {...},
+        {
+      "Distance": 1.9171507165219004,
+      "id": 237,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "Esta povoação que chegou a ser sede de concelho na idade média, teve foral outorgado por D. Afonso Henriques, em 1182. Adquiriu grande importância económica no decorrer do séc. XIX com a intensa produção de amêndoa e de seda. As suas construções em xisto, não deixam ninguém indiferente. O mesmo se pode dizer do núcleo de palheiros circulares. Não deixe de percorrer os caminhos circundantes à aldeia e visite o Santuário de Santo Apolinário.",
+      "poi_lat": 41.083333,
+      "poi_lon": -7.022778,
+      "poi_name": "Centro Rural de Urros",
+      "source": "http://www.cm-moncorvo.pt/o-que-visitar/patrimonio/arquitectonico/centro-historico-e-centros-rurais/centros-rurais/urros"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816286
+}</pre>
+                                
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e a distância máxima é de 5 Quilometros. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria, irá devolver todos os Monumentos e locais de interesse que se encontram a 5 Quilometros do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>                                </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "Distance": 4.436058144661504,
+      "id": 199,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_140008.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_135252.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_134543.jpg"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "A Igreja de Nossa Senhora da Assunção, Matriz da vila de Torre de Moncorvo, ergue-se no local de um templo paroquial primitivo da Baixa Idade Média. O ambicioso e majestoso monumento que hoje vemos iniciou-se em 1544 segundo um plano pouco ortodoxo que concebeu a entrada principal a Nascente e o altar-mor a poente, numa clara sujeição da obra ao traçado urbano da vila. É uma obra maneirista, austera e de linhas severas, com contrafortes pronunciados e dominada pela exuberância e altura da fachada principal. Esta divide-se em dois corpos verticais sobrepostos: o inferior, que corresponde ao portal principal e às duas ordens de nichos que o sobrepujam, e o superior, formado integralmente pela maciça torre sineira. \r\nO interior do templo encontra-se organizado segundo o esquema de hallenkirchen (igrejas-salão), sendo os cinco tramos das naves abobadados à mesma altura. Nas suas proporções e disposição geral, o interior revela a mesma austeridade e racionalidade do exterior, como se testemunha na longa série de tramos do corpo da igreja simetricamente abobadados. A capela-mor ostenta na parede fundeira um retábulo barroco de talha dourada, e nas paredes laterais frescos alusivos a cenas bíblicas, entre as quais uma \"Última Ceia\".",
+      "poi_lat": 41.173333,
+      "poi_lon": -7.052778,
+      "poi_name": "Igreja Matriz de Torre de Moncorvo",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/449/igreja-de-nossa-senhora-da-assuno-matriz-de-torre-de-moncorvo                http://www.patrimoniocultural.gov.pt"
+    },
+    {
+      "Distance": 4.220904662346093,
+      "id": 200,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "É um dos mais belos exemplares de arquitectura românica/gótica, classificada como M.N e Fachada com portal gótico. Nos muros, observam-se várias figuras esculpidas com representações religiosas, distinguindo-se na fachada, as “três marias”. No interior destacam-se as pinturas murais quinhentistas.",
+      "poi_lat": 41.274167,
+      "poi_lon": -7.05,
+      "poi_name": "Igreja românica de Adeganha",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/451/igreja-de-santiago-maior-matriz-de-adeganha    http://www.patrimoniocultural.gov.pt"
+    },
+    {...},
+        {
+      "Distance": 4.6622137797764065,
+      "id": 719,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "O pelourinho datará dos anos seguintes à atribuição do foral manuelino, de acordo com a sua feição quinhentista. Ergue-se num largo central da povoação, diante da antiga Casa da Câmara e cadeia comarcã. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e é rematada por uma moldura decorativa igualmente oitavada a pouca distância do topo, criando uma espécie de colarinho, ou arremedo de capitel, encimado por ábaco oitavado. O remate é em gaiola, constituída por oito colunelos entre dois troncos de pirâmide oitavados, sendo o da base invertido. Esta mesma base, moldurada, é decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos são cilíndricos, assentes em pequena mísulas, e rematados por cogulhos no topo; o chapéu da gaiola, em pirâmide oitavada de faces lisas, assenta num colunelo central, também cilíndrico e liso. O coroamento é feito por uma pequena esfera armilar, encimada por uma diminuta peça terminal. ",
+      "poi_lat": 41.001111,
+      "poi_lon": -7.055556,
+      "poi_name": "Pelourinho de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816359
+}</pre>
+                                                                <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e a distância máxima é de 5 Quilometros. Isto irá devolver todos os pontos da base de dados que se encontram a 5Km do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista de pontos cuja distância ao ponto dado é menor ou igual a 5Km, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">        {
+      "Distance": 4.436058144661504,
+      "id": 199,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_140008.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_135252.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_134543.jpg"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "A Igreja de Nossa Senhora da Assunção, Matriz da vila de Torre de Moncorvo, ergue-se no local de um templo paroquial primitivo da Baixa Idade Média. O ambicioso e majestoso monumento que hoje vemos iniciou-se em 1544 segundo um plano pouco ortodoxo que concebeu a entrada principal a Nascente e o altar-mor a poente, numa clara sujeição da obra ao traçado urbano da vila. É uma obra maneirista, austera e de linhas severas, com contrafortes pronunciados e dominada pela exuberância e altura da fachada principal. Esta divide-se em dois corpos verticais sobrepostos: o inferior, que corresponde ao portal principal e às duas ordens de nichos que o sobrepujam, e o superior, formado integralmente pela maciça torre sineira. \r\nO interior do templo encontra-se organizado segundo o esquema de hallenkirchen (igrejas-salão), sendo os cinco tramos das naves abobadados à mesma altura. Nas suas proporções e disposição geral, o interior revela a mesma austeridade e racionalidade do exterior, como se testemunha na longa série de tramos do corpo da igreja simetricamente abobadados. A capela-mor ostenta na parede fundeira um retábulo barroco de talha dourada, e nas paredes laterais frescos alusivos a cenas bíblicas, entre as quais uma \"Última Ceia\".",
+      "poi_lat": 41.173333,
+      "poi_lon": -7.052778,
+      "poi_name": "Igreja Matriz de Torre de Moncorvo",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/449/igreja-de-nossa-senhora-da-assuno-matriz-de-torre-de-moncorvo                http://www.patrimoniocultural.gov.pt"
+    },
+    {
+      "Distance": 4.220904662346093,
+      "id": 200,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "É um dos mais belos exemplares de arquitectura românica/gótica, classificada como M.N e Fachada com portal gótico. Nos muros, observam-se várias figuras esculpidas com representações religiosas, distinguindo-se na fachada, as “três marias”. No interior destacam-se as pinturas murais quinhentistas.",
+      "poi_lat": 41.274167,
+      "poi_lon": -7.05,
+      "poi_name": "Igreja românica de Adeganha",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/451/igreja-de-santiago-maior-matriz-de-adeganha    http://www.patrimoniocultural.gov.pt"
+    },
+    {...},
+        {
+      "Distance": 4.6622137797764065,
+      "id": 719,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "O pelourinho datará dos anos seguintes à atribuição do foral manuelino, de acordo com a sua feição quinhentista. Ergue-se num largo central da povoação, diante da antiga Casa da Câmara e cadeia comarcã. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e é rematada por uma moldura decorativa igualmente oitavada a pouca distância do topo, criando uma espécie de colarinho, ou arremedo de capitel, encimado por ábaco oitavado. O remate é em gaiola, constituída por oito colunelos entre dois troncos de pirâmide oitavados, sendo o da base invertido. Esta mesma base, moldurada, é decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos são cilíndricos, assentes em pequena mísulas, e rematados por cogulhos no topo; o chapéu da gaiola, em pirâmide oitavada de faces lisas, assenta num colunelo central, também cilíndrico e liso. O coroamento é feito por uma pequena esfera armilar, encimada por uma diminuta peça terminal. ",
+      "poi_lat": 41.001111,
+      "poi_lon": -7.055556,
+      "poi_name": "Pelourinho de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816433
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Função: Lista de POI’s que se encontram a menos de um tempo máximo de viagem de um ponto dado</a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve todos os POI’s cuja duração da viagem entre eles e a localização geográfica definida pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>lat</strong>: latitude do ponto que o utilizador quer;<br>
+•	<strong>lon</strong>: longitude do ponto que o utilizador quer;<br>
+•	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: id do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>time</strong>: tempo máximo em segundos que o utilizador permite na viagem;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                                                    <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e o tempo máximo é de 2800 segundos. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria e o id 17 (Torre de Moncorvo) no parametro de concelho, irá devolver todos os Monumentos e locais de interesse no concelho de Torre de Moncorvo que se encontram a 2800 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>conc</strong>=<em>17</em>&amp;<strong>time</strong>=<em>2800</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse em Torre de Moncorvo que se alcança em menos de 2800 segundos caso se inicie a viagem apartir do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 199,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_140008.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_135252.jpg",
+        "http://172.121.100.105/static/uploads/512px_IMG_20180401_134543.jpg"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "A Igreja de Nossa Senhora da Assunção, Matriz da vila de Torre de Moncorvo, ergue-se no local de um templo paroquial primitivo da Baixa Idade Média. O ambicioso e majestoso monumento que hoje vemos iniciou-se em 1544 segundo um plano pouco ortodoxo que concebeu a entrada principal a Nascente e o altar-mor a poente, numa clara sujeição da obra ao traçado urbano da vila. É uma obra maneirista, austera e de linhas severas, com contrafortes pronunciados e dominada pela exuberância e altura da fachada principal. Esta divide-se em dois corpos verticais sobrepostos: o inferior, que corresponde ao portal principal e às duas ordens de nichos que o sobrepujam, e o superior, formado integralmente pela maciça torre sineira. \r\nO interior do templo encontra-se organizado segundo o esquema de hallenkirchen (igrejas-salão), sendo os cinco tramos das naves abobadados à mesma altura. Nas suas proporções e disposição geral, o interior revela a mesma austeridade e racionalidade do exterior, como se testemunha na longa série de tramos do corpo da igreja simetricamente abobadados. A capela-mor ostenta na parede fundeira um retábulo barroco de talha dourada, e nas paredes laterais frescos alusivos a cenas bíblicas, entre as quais uma \"Última Ceia\".",
+      "poi_lat": 41.173333,
+      "poi_lon": -7.052778,
+      "poi_name": "Igreja Matriz de Torre de Moncorvo",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/449/igreja-de-nossa-senhora-da-assuno-matriz-de-torre-de-moncorvo                http://www.patrimoniocultural.gov.pt",
+      "trip_duration": 2686.2
+    },
+    {
+      "id": 201,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "O termo de Adeganha encerra algumas curiosidades, das quais sobressaem as \"Muralhas e ruínas de Vila Velha de Santa Cruz ou Derruída\", correspondentes a uma antiga sede concelhia medieval localizada no cimo de uma colina sobranceira ao Rio Sabor e à Rib.ª de Vilariça, vales particularmente férteis, especialmente no que se refere à horticultura, distribuindo-se de forma harmoniosa na topografia, sendo delimitada por muralhado imponente (reforçado, a Este, por duas muralhas exteriores) e rasgada pela sempre presente \"Rua Direita\" que conduzia ao largo principal onde se erguia a igreja, da qual remanesce um dos alçados, nas proximidades de sepulturas escavadas nos afloramentos.",
+      "poi_lat": 41.209167,
+      "poi_lon": -7.089444,
+      "poi_name": "Muralhas e ruínas de Vila Velha de Santa Cruz ou Derruída",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/187/vila-velha-ou-santa-cruz-da-vilaria              http://www.patrimoniocultural.gov.pt",
+      "trip_duration": 2611
+    },
+    {...},
+    {
+      "id": 214,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Torre de Moncorvo",
+      "poi_descript": "Antigo eremitério do séc. XVI, classificado como Imóvel de Interesse Público.\r\nSe o exterior é sóbrio de paredes caiadas de branco, o alpendre e o interior sustentam abóbadas de berço, onde existem pinturas figurativas polícromas, que preenchem todo o espaço. São particularmente interessantes as pinturas do alpendre onde está representado o céu e o inferno.\r\nA poucos metros da capela, junto ao caminho de acesso, existe uma coluna encimada por uma \"Pietá\" e coberta por um alpendre quadrangular.",
+      "poi_lat": 41.149167,
+      "poi_lon": -7.068333,
+      "poi_name": "Ermida de Nossa Senhora da Teixeira",
+      "source": "http://www.patrimoniocultural.gov.pt            http://turismovirtual.amdourosuperior.com/pt/microsite/poi/445/capela-de-nossa-senhora-da-teixeira         http://www.torredemoncorvo.pt",
+      "trip_duration": 2671.9
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816642
+}</pre>
+                                
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e o tempo máximo é de 700 segundos. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria, irá devolver todos os Monumentos e locais de interesse que se encontram a 700 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>time</strong>=<em>700</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse que se alcançam em menos de 700 segundos caso se inicie a viagem apartir do ponto dado:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 717,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "De planta rectangular, a Casa de Almendra inscreve-se no modelo da denominada casa comprida, que caracterizou a arquitectura civil do nosso país no século XVIII, e que se pauta por um desenvolvimento em comprimento, materializado numa longa fachada, apenas dinamizada pelos elementos decorativos, que lhe emprestam uma imagem cenográfica própria do barroco. \r\nEdificada em blocos de granito, sem reboco, a casa desenvolve-se em dois pisos, cujas fachadas são abertas por vãos regulares e simétricos. Estes, caracterizam-se pelos aventais e lintéis decorados com enrolamentos e concheados rococó, repetindo o mesmo modelo, que apenas se diferencia entre o piso térreo e o andar nobre, este último mais complexo. \r\nÉ, no entanto, na fachada principal, que se concentra a mais importante decoração, pelo dinamismo e movimento que a composição imprime ao edifício. O ritmo dos vãos converge, ao centro, na secção definida por pilastras, e rematada pelo telhado de linhas onduladas, em cujo tímpano se inscreve o brasão, que não apresenta qualquer elemento heráldico. O portal, flanqueado por duas colunas, é encimado pela varanda de planta contracurvada, com balaustrada que antecede a porta de moldura profusamente trabalhada.",
+      "poi_lat": 40.999445,
+      "poi_lon": -7.054167,
+      "poi_name": "Casa de Almendra",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/patrimonio/patrimonio-imovel/pesquisa-do-patrimonio/classificado-ou-em-vias-de-classificacao/geral/view/73324",
+      "trip_duration": 554.5
+    },
+    {
+      "id": 718,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "Embora se conheçam referências documentais à existência de um templo em Almendra cerca de 1320, a Igreja de Nossa Senhora dos Anjos foi construída no terceiro quartel do século XVI, estando a obra de reedificação concluída possivelmente em 1565. \r\nNas centúrias seguintes, a estrutura do edifício foi alterada por algumas campanhas construtivas, nomeadamente no interior, com a edificação de capelas laterais. \r\nO templo maneirista desenvolve-se em planta longitudinal composta por três naves rectangulares e capela-mor quadrangular, esta com contrafortes exteriores e remate em platibanda com gárgulas de canhão formando uma espécie de torreão. \r\nA fachada principal, de linhas sóbrias e gosto erudito, é rasgada ao centro por portal de volta perfeita enquadrado em alfiz com pilastras e rematado por frontão triangular com medalhão ao centro, onde foi gravada a data 1565. Este conjunto é ladeado por dois contrafortes e encimado por óculo. Do lado direito da fachada foi edificada a torre sineira. \r\nNas fachadas laterais foram abertos dois portais de volta perfeita, que permitem o acesso às naves laterais, de estrutura igual, enquadrado em alfiz, ladeados por colunelos e encimados por frontão.",
+      "poi_lat": 41.000833,
+      "poi_lon": -7.0575,
+      "poi_name": "Igreja Matriz de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/255/igreja-matriz-de-nossa-senhora-dos-anjos",
+      "trip_duration": 587.8
+    },
+    {
+      "id": 719,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "O pelourinho datará dos anos seguintes à atribuição do foral manuelino, de acordo com a sua feição quinhentista. Ergue-se num largo central da povoação, diante da antiga Casa da Câmara e cadeia comarcã. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e é rematada por uma moldura decorativa igualmente oitavada a pouca distância do topo, criando uma espécie de colarinho, ou arremedo de capitel, encimado por ábaco oitavado. O remate é em gaiola, constituída por oito colunelos entre dois troncos de pirâmide oitavados, sendo o da base invertido. Esta mesma base, moldurada, é decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos são cilíndricos, assentes em pequena mísulas, e rematados por cogulhos no topo; o chapéu da gaiola, em pirâmide oitavada de faces lisas, assenta num colunelo central, também cilíndrico e liso. O coroamento é feito por uma pequena esfera armilar, encimada por uma diminuta peça terminal. ",
+      "poi_lat": 41.001111,
+      "poi_lon": -7.055556,
+      "poi_name": "Pelourinho de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt",
+      "trip_duration": 572.5
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816733
+}</pre>
+                                                                <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e o tempo máximo é de 700 segundos. Isto irá devolver todos os pontos da base de dados que se encontram a 700 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>time</strong>=<em>700</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista de pontos cuja viagem do ponto dado até eles demore menos que 700 segundos, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>    
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+      "id": 717,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "De planta rectangular, a Casa de Almendra inscreve-se no modelo da denominada casa comprida, que caracterizou a arquitectura civil do nosso país no século XVIII, e que se pauta por um desenvolvimento em comprimento, materializado numa longa fachada, apenas dinamizada pelos elementos decorativos, que lhe emprestam uma imagem cenográfica própria do barroco. \r\nEdificada em blocos de granito, sem reboco, a casa desenvolve-se em dois pisos, cujas fachadas são abertas por vãos regulares e simétricos. Estes, caracterizam-se pelos aventais e lintéis decorados com enrolamentos e concheados rococó, repetindo o mesmo modelo, que apenas se diferencia entre o piso térreo e o andar nobre, este último mais complexo. \r\nÉ, no entanto, na fachada principal, que se concentra a mais importante decoração, pelo dinamismo e movimento que a composição imprime ao edifício. O ritmo dos vãos converge, ao centro, na secção definida por pilastras, e rematada pelo telhado de linhas onduladas, em cujo tímpano se inscreve o brasão, que não apresenta qualquer elemento heráldico. O portal, flanqueado por duas colunas, é encimado pela varanda de planta contracurvada, com balaustrada que antecede a porta de moldura profusamente trabalhada.",
+      "poi_lat": 40.999445,
+      "poi_lon": -7.054167,
+      "poi_name": "Casa de Almendra",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/patrimonio/patrimonio-imovel/pesquisa-do-patrimonio/classificado-ou-em-vias-de-classificacao/geral/view/73324",
+      "trip_duration": 554.5
+    },
+    {
+      "id": 718,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "Embora se conheçam referências documentais à existência de um templo em Almendra cerca de 1320, a Igreja de Nossa Senhora dos Anjos foi construída no terceiro quartel do século XVI, estando a obra de reedificação concluída possivelmente em 1565. \r\nNas centúrias seguintes, a estrutura do edifício foi alterada por algumas campanhas construtivas, nomeadamente no interior, com a edificação de capelas laterais. \r\nO templo maneirista desenvolve-se em planta longitudinal composta por três naves rectangulares e capela-mor quadrangular, esta com contrafortes exteriores e remate em platibanda com gárgulas de canhão formando uma espécie de torreão. \r\nA fachada principal, de linhas sóbrias e gosto erudito, é rasgada ao centro por portal de volta perfeita enquadrado em alfiz com pilastras e rematado por frontão triangular com medalhão ao centro, onde foi gravada a data 1565. Este conjunto é ladeado por dois contrafortes e encimado por óculo. Do lado direito da fachada foi edificada a torre sineira. \r\nNas fachadas laterais foram abertos dois portais de volta perfeita, que permitem o acesso às naves laterais, de estrutura igual, enquadrado em alfiz, ladeados por colunelos e encimados por frontão.",
+      "poi_lat": 41.000833,
+      "poi_lon": -7.0575,
+      "poi_name": "Igreja Matriz de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/255/igreja-matriz-de-nossa-senhora-dos-anjos",
+      "trip_duration": 587.8
+    },
+    {
+      "id": 719,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descript": "O pelourinho datará dos anos seguintes à atribuição do foral manuelino, de acordo com a sua feição quinhentista. Ergue-se num largo central da povoação, diante da antiga Casa da Câmara e cadeia comarcã. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e é rematada por uma moldura decorativa igualmente oitavada a pouca distância do topo, criando uma espécie de colarinho, ou arremedo de capitel, encimado por ábaco oitavado. O remate é em gaiola, constituída por oito colunelos entre dois troncos de pirâmide oitavados, sendo o da base invertido. Esta mesma base, moldurada, é decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos são cilíndricos, assentes em pequena mísulas, e rematados por cogulhos no topo; o chapéu da gaiola, em pirâmide oitavada de faces lisas, assenta num colunelo central, também cilíndrico e liso. O coroamento é feito por uma pequena esfera armilar, encimada por uma diminuta peça terminal. ",
+      "poi_lat": 41.001111,
+      "poi_lon": -7.055556,
+      "poi_name": "Pelourinho de Almendra",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt",
+      "trip_duration": 572.5
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816778
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">Função: Lista de POI’s pertencentes a uma certa categoria e/ou concelho</a>
+                            </h4>
+                        </div>
+                        <div id="collapseThree" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve todos os POI’s que pertençam a uma categoria e/ou concelho. Pelo menos um destes parametros tem de ser dado.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: id do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com a categoria cujo ID é 1 (museu) e conselho cujo ID é 10 (Lamego). Isto irá devolver todos os museus no concelho de Lamego<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>cat</strong>=<em>1&amp;</em><strong>conc</strong>=<em>10&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os museus no concelho de Lamego, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 81,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4582.JPG",
+        "http://172.121.100.105/static/uploads/512px_IMG_3873.JPG",
+        "http://172.121.100.105/static/uploads/512px_DSC_7605_web.jpg"
+      ],
+      "poi_categ": "Museus",
+      "poi_conc": "Lamego",
+      "poi_descript": "\"O edifício é um dos mais esplendorosos palácios brasonados de Lamego.\r\nCom uma frontaria ampla voltada para a escadaria e Santuário da Nossa Senhora dos Remédios, esta edificação, antigo Paço Episcopal da cidade, foi objecto de ampla remodelação entre 1772 e 1786, empreendida pelo Bispo D. Manuel de Vasconcelos e Pereira.\r\nNa sua fachada principal, composta por três corpos divididos por pilastras lisas de granito, ressaltam belas janelas bem características de um estilo fantasioso da época, possuindo a dos corpos laterais dois extensos varandins de pedra.\r\nAtualmente funciona como museu da cidade\"\t\t",
+      "poi_lat": 41.096667,
+      "poi_lon": -7.806389,
+      "poi_name": "Museu de Lamego",
+      "source": "http://www.museudelamego.pt/"
+    },
+    {
+      "id": 84,
+      "images": "",
+      "poi_categ": "Museus",
+      "poi_conc": "Lamego",
+      "poi_descript": "Pensado como um espaço cultural dedicado à Máscara, o Centro Interpretativo da Máscara Ibérica tem como principal objetivo a valorização, promoção e divulgação deste património cultural de importância, simbolismo e significado universalmente reconhecido.\r\nConstruído no antigo Solar dos Viscondes de Lazarim, o CIMI conta uma exposição – trajes, máscaras e objetos das mascaradas invernais e entrudos de Portugal e Espanha – e a biblioteca, estando projetada a preparação de conteúdo para uma mediateca e fototeca.\r\nA forte presença da máscara e rituais a ela ligados justifica a existência de um centro interpretativo que procure envolver todas estas manifestações culturais, estudando e interpretando o seu significado, através do contacto com as populações e de pesquisas sobre as suas histórias e origens.\r\nUm espaço cultural rico em histórias e tradições que contam vivências de outrora, que ainda hoje insistem em se renovar, dando a conhecer rituais simbólicos cujas origens foram perdidas no tempo.",
+      "poi_lat": 41.031389,
+      "poi_lon": -7.844445,
+      "poi_name": "Centro Interpretativo Máscaras Ibéricas-CIMI",
+      "source": "https://www.facebook.com/CIMI.LAMEGO/\r\nhttp://www.cm-lamego.pt/  "
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816853
+}</pre>
+                                
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com a categoria cujo ID é 1 (museus). Como não é dado um valor para o concelho, irá devolver todos os museus<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>cat</strong>=<em>1&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os museus todos da base de dados, em formato JSON com os seguintes parâmetros:<br>
+                                                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+      "id": 81,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4582.JPG",
+        "http://172.121.100.105/static/uploads/512px_IMG_3873.JPG",
+        "http://172.121.100.105/static/uploads/512px_DSC_7605_web.jpg"
+      ],
+      "poi_categ": "Museus",
+      "poi_conc": "Lamego",
+      "poi_descri_pt": "\"O edifício é um dos mais esplendorosos palácios brasonados de Lamego.\r\nCom uma frontaria ampla voltada para a escadaria e Santuário da Nossa Senhora dos Remédios, esta edificação, antigo Paço Episcopal da cidade, foi objecto de ampla remodelação entre 1772 e 1786, empreendida pelo Bispo D. Manuel de Vasconcelos e Pereira.\r\nNa sua fachada principal, composta por três corpos divididos por pilastras lisas de granito, ressaltam belas janelas bem características de um estilo fantasioso da época, possuindo a dos corpos laterais dois extensos varandins de pedra.\r\nAtualmente funciona como museu da cidade\"\t\t",
+      "poi_lat": 41.096667,
+      "poi_lon": -7.806389,
+      "poi_name": "Museu de Lamego",
+      "source": "http://www.museudelamego.pt/"
+    },
+    {
+      "id": 84,
+      "images": "",
+      "poi_categ": "Museus",
+      "poi_conc": "Lamego",
+      "poi_descri_pt": "Pensado como um espaço cultural dedicado à Máscara, o Centro Interpretativo da Máscara Ibérica tem como principal objetivo a valorização, promoção e divulgação deste património cultural de importância, simbolismo e significado universalmente reconhecido.\r\nConstruído no antigo Solar dos Viscondes de Lazarim, o CIMI conta uma exposição – trajes, máscaras e objetos das mascaradas invernais e entrudos de Portugal e Espanha – e a biblioteca, estando projetada a preparação de conteúdo para uma mediateca e fototeca.\r\nA forte presença da máscara e rituais a ela ligados justifica a existência de um centro interpretativo que procure envolver todas estas manifestações culturais, estudando e interpretando o seu significado, através do contacto com as populações e de pesquisas sobre as suas histórias e origens.\r\nUm espaço cultural rico em histórias e tradições que contam vivências de outrora, que ainda hoje insistem em se renovar, dando a conhecer rituais simbólicos cujas origens foram perdidas no tempo.",
+      "poi_lat": 41.031389,
+      "poi_lon": -7.844445,
+      "poi_name": "Centro Interpretativo Máscaras Ibéricas-CIMI",
+      "source": "https://www.facebook.com/CIMI.LAMEGO/\r\nhttp://www.cm-lamego.pt/  "
+    },
+    {...},
+    {
+      "id": 724,
+      "images": "",
+      "poi_categ": "Museus",
+      "poi_conc": "Vila Nova de Foz Côa",
+      "poi_descri_pt": "Quando, em 1983, a Câmara Municipal decidiu adquirir o imóvel para aqui instalar um museu, doando-o posteriormente à Associação Cultural Desportiva e Recreativa de Freixo de Numão (A.C.D.R.), fizeram-se escavações no local, que revelaram vestígios de ocupação do espaço desde tempos muito remotos. Foram encontrados materiais pré e proto-históricos, bem como largos vestígios de ocupação romana, visíveis na área musealizada do quintal - parte de uma casa, celeiro, e áreas de forja, de moagem e de tecelagem. Localizaram-se, ainda, testemunhos de ocupação na Idade Média, e para os séculos XVI e XVII fortes indícios da existência de um palácio, ao qual surge ligado o nome de Andrez Perez Carneiro Henriques, também relacionado cm a capela de Nossa Senhora da Conceição, da rua do Cabo, com a data de 1654 (dados das escavações efectuadas pelo museu). \r\nO Museu de Casa Grande, abriu as suas portas ao público no ano de 1996, apresentando colecções de arqueologia e etnografia, com objectos provenientes das escavações efectuadas pela A.C.D.R.",
+      "poi_lat": 41.067222,
+      "poi_lon": -7.220278,
+      "poi_name": "Museu da Casa Grande",
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/473/museu-da-casa-grande             http://www.patrimoniocultural.gov.pt"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528816888
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                        
+                                        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseFour">Função: Lista de POI’s a menos de uma distância geográfica fixa de um POI dado</a>
+                            </h4>
+                        </div>
+                        <div id="collapseFour" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto de interesse definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. <br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em>
+</pre>
+                     
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>cat</strong>: ID da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category IDs:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: ID do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho IDs:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>dist</strong>: distância máxima que o utilizador deseja em Quilómetros;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e a distância máxima é de 5 Quilometros. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria e o id 10 (Lamego) no parametro de concelho, irá devolver todos os Monumentos e locais de interesse no concelho de Lamego que se encontram a 5 Quilometros do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>71</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>conc</strong>=<em>10</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse em Lamego que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "Distance": 0,
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "Distance": 0.1629871787284389,
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/"
+    },
+    {...},
+    {
+      "Distance": 1.5614280109945702,
+      "id": 597,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "O pelourinho foi demolido em data incerta, ficando os seus fragmentos dispersos. Em 1997, a Junta de Freguesia procedeu ao restauro do mesmo, tendo sido possível integrar o capitel e a peça de remate originais; os restantes elementos, nomeadamente os degraus e o fuste, são de factura moderna. O monumento ergue-se num largo da freguesia, junto da capela de São Sebastião. Assenta em plataforma de três degraus octogonais, de aresta, sendo os dois inferiores muito largos, e o superior servindo de base da coluna. Esta possui fuste de secção quadrada, com arestas chanfradas a partir de curta distância da base, de forma a tomar a secção octogonal. O capitel, parcialmente truncado, é composto por moldura circular encordoada, onde assenta cesto inteiramente lavrado com delicados motivos vegetalistas, encimado por ábaco ou tabuleiro quadrado, em duas molduras sobrepostas. O remate é um bloco quadrangular com faces molduradas, em cada uma figurando um relevo heráldico, alternando a cruz de Avis com a de Santiago. Esta peça encontra-se partida no topo e numa das faces. \r\nD. Jorge de Lencastre era, recorde-se, Mestre das Ordens de Avis e Santiago da Espada, motivo pelo qual as cruzes, também seus emblemas pessoais, se encontram no pelourinho.",
+      "poi_lat": 41.063611,
+      "poi_lon": -7.790278,
+      "poi_name": "Pelourinho de Britiande",
+      "source": "http://www.patrimoniocultural.gov.pt"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817007
+}</pre>
+                                
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e a distância máxima é de 5 Quilometros. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria, irá devolver todos os Monumentos e locais de interesse que se encontram a 5 Quilometros do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>71</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com todos os Monumentos e locais de interesse que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "Distance": 0,
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "Distance": 0.1629871787284389,
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/"
+    },
+    {...},
+    {
+      "Distance": 2.7280914771178515,
+      "id": 665,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Santa Marta de Penaguião",
+      "poi_descript": "Implantada num pequeno largo onde se situa, também, uma fonte de espaldar barroco com pedra de armas, a igreja paroquial de Lobrigos destaca-se pela fachada principal que é, simultaneamente, a base da torre sineira. De planta quadrada, aqui se abrem, nas suas três faces, arcos de volta perfeita, formando uma galilé que antecede a entrada no templo. O corpo da igreja desenvolve-se longitudinalmente, para trás, apresentando nave única com coro alto, e capela-mor, rectangulares. \r\nSobre o arco do alçado principal, uma janela de verga recta é ladeada por volutas, e no último registo, um arco em cada uma das três faces recebem as sineiras. As pilastras dos cunhais terminam em esferas e a torre é coberta por cúpula. \r\nNo interior, a talha dourada ocupa todo o espaço, e imprime ao conjunto um enorme dinamismo, extravasando a aplicação dos retábulos e formando os caixotões do tecto da nave e capela-mor, que se prolongam pelas paredes laterais, enquadrando pinturas de temática hagiográfica e cristológica. Reveste ainda a totalidade do arco triunfal, que integra dois altares colaterais. A parede fundeira é, também ela, totalmente preenchida pelo retábulo de talha joanina.",
+      "poi_lat": 41.198889,
+      "poi_lon": -7.776389,
+      "poi_name": "Igreja São João Baptista_Lobrigos_SMP",
+      "source": "http://www.cm-smpenaguiao.pt/visitar"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817097
+}</pre>
+
+                                <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e a distância máxima é de 5 Quilometros. Isto irá devolver todos os pontos da base de dados que se encontram a 5Km do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>71</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com todos os POI's que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula">função de  Haversine</a>;<br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+      "Distance": 0,
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "Distance": 0.1629871787284389,
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/"
+    },
+    {...},
+    {
+      "Distance": 2.7280914771178515,
+      "id": 665,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Santa Marta de Penaguião",
+      "poi_descript": "Implantada num pequeno largo onde se situa, também, uma fonte de espaldar barroco com pedra de armas, a igreja paroquial de Lobrigos destaca-se pela fachada principal que é, simultaneamente, a base da torre sineira. De planta quadrada, aqui se abrem, nas suas três faces, arcos de volta perfeita, formando uma galilé que antecede a entrada no templo. O corpo da igreja desenvolve-se longitudinalmente, para trás, apresentando nave única com coro alto, e capela-mor, rectangulares. \r\nSobre o arco do alçado principal, uma janela de verga recta é ladeada por volutas, e no último registo, um arco em cada uma das três faces recebem as sineiras. As pilastras dos cunhais terminam em esferas e a torre é coberta por cúpula. \r\nNo interior, a talha dourada ocupa todo o espaço, e imprime ao conjunto um enorme dinamismo, extravasando a aplicação dos retábulos e formando os caixotões do tecto da nave e capela-mor, que se prolongam pelas paredes laterais, enquadrando pinturas de temática hagiográfica e cristológica. Reveste ainda a totalidade do arco triunfal, que integra dois altares colaterais. A parede fundeira é, também ela, totalmente preenchida pelo retábulo de talha joanina.",
+      "poi_lat": 41.198889,
+      "poi_lon": -7.776389,
+      "poi_name": "Igreja São João Baptista_Lobrigos_SMP",
+      "source": "http://www.cm-smpenaguiao.pt/visitar"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817187
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                                            <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseFive">Função: Lista de POI’s que se encontram a menos de um tempo máximo de viagem de um POI dado</a>
+                            </h4>
+                        </div>
+                        <div id="collapseFive" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve todos os POI’s cuja duração da viagem entre eles e o POI definido pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: id do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho ids:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>time</strong>: tempo máximo em segundos que o utilizador permite na viagem;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e o tempo máximo é de 2800 segundos. Como tambem é dado o id 3 (Monumentos e locais de interesse) no parametro de categoria e o id 10 (Lamego) no parametro de concelho, irá devolver todos os Monumentos e locais de interesse no concelho de Lamego que se encontram a 2800 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>71</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>conc</strong>=<em>10</em>&amp;<strong>time</strong>=<em>2800</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os Monumentos e locais de interesse em Lamego que se alcançam em menos de 2800 segundos caso se inicie a viagem apartir do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna",
+      "trip_duration": 0
+    },
+    {
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/",
+      "trip_duration": 197.4
+    },
+    {...},
+    {
+      "id": 597,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "O pelourinho foi demolido em data incerta, ficando os seus fragmentos dispersos. Em 1997, a Junta de Freguesia procedeu ao restauro do mesmo, tendo sido possível integrar o capitel e a peça de remate originais; os restantes elementos, nomeadamente os degraus e o fuste, são de factura moderna. O monumento ergue-se num largo da freguesia, junto da capela de São Sebastião. Assenta em plataforma de três degraus octogonais, de aresta, sendo os dois inferiores muito largos, e o superior servindo de base da coluna. Esta possui fuste de secção quadrada, com arestas chanfradas a partir de curta distância da base, de forma a tomar a secção octogonal. O capitel, parcialmente truncado, é composto por moldura circular encordoada, onde assenta cesto inteiramente lavrado com delicados motivos vegetalistas, encimado por ábaco ou tabuleiro quadrado, em duas molduras sobrepostas. O remate é um bloco quadrangular com faces molduradas, em cada uma figurando um relevo heráldico, alternando a cruz de Avis com a de Santiago. Esta peça encontra-se partida no topo e numa das faces. \r\nD. Jorge de Lencastre era, recorde-se, Mestre das Ordens de Avis e Santiago da Espada, motivo pelo qual as cruzes, também seus emblemas pessoais, se encontram no pelourinho.",
+      "poi_lat": 41.063611,
+      "poi_lon": -7.790278,
+      "poi_name": "Pelourinho de Britiande",
+      "source": "http://www.patrimoniocultural.gov.pt",
+      "trip_duration": 669.3
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817292
+}</pre>
+                                
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e o tempo máximo é de 2800 segundos. Como tambem é dado o id 3 (Monumentos e locais de interesse), irá devolver todos os Monumentos e locais de interesse que se encontram a 2800 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>71</em>&amp;<strong>cat</strong>=<em>3</em>&amp;<strong>time</strong>=<em>2800</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com todos os Monumentos e locais de interesse que se alcançam em menos de 2800 segundos caso se inicie a viagem apartir do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna",
+      "trip_duration": 0
+    },
+    {
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/",
+      "trip_duration": 197.4
+    },
+    {...},
+    {
+      "id": 697,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Tabuaço",
+      "poi_descript": "O templo é de modestas proporções, de planta longitudinal composta por nave e capela-mor rectangular, sendo a cobertura do corpo em tecto de madeira a imitar um sistema abobadado abatido e a da capela-mor em caixotões de talha dourada, cujas molduras enquadram tábuas de pintura características do reinado de D. João V. A fachada principal é de dois registos, sendo o portal de lintel recto e associando-se-lhe uma sineira de arco de volta perfeita.\r\nNo interior, destacam-se as várias realizações de talha, a maioria já do século XIX e correspondendo a um figurino tardo-barroco comum nos meios regionais e mais afastados dos centros artísticos e vanguardistas do reino. Em meados do século XX, o púlpito da nave foi substituído pelo retábulo de Santo Ildefonso, obra policromada em tons de branco e amarelo, com colunas encimadas por capitéis coríntios.\r\nFoi esta a última manifestação de engrandecimento do templo, que não mais voltou a ser objecto de transformação. No seu conjunto, ele evoca os tempos em que Balsa foi freguesia do concelho e desfrutou de um breve momento de apogeu populacional e administrativo.",
+      "poi_lat": 41.142222,
+      "poi_lon": -7.550278,
+      "poi_name": "Capela São Sebastião e Adro",
+      "source": "http://www.cm-tabuaco.pt/       http://www.patrimoniocultural.gov.pt",
+      "trip_duration": 2505.4
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817398
+}</pre>
+                                       <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e o tempo máximo é de 2800 segundos. Como não são dados mais nenhuns parâmetros, irá devolver todos os POI's que se encontram a 2800 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>71</em>&amp;<strong>time</strong>=<em>2800</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com todos POI's que se alcançam em menos de 2800 segundos caso se inicie a viagem apartir do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna",
+      "trip_duration": 0
+    },
+    {
+      "id": 74,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_IMG_4648.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Como a maioria dos edifícios em Lamego, a arquitectura apresenta a influência de épocas diferentes. Tendo as suas origens nos meados do século XII, destacam-se a Torre, a Frontaria, o Coro-Alto, o Claustro, assim como o seu interior.\r\nA torre apresenta uma arquitetura alusiva ao período românico, com forte embasamento quadrangular, três andares e algumas frestas notáveis pelas suas ornamentações, considerando que a parte cimeira corresponde a uma intervenção datada do século XVI.\r\nA Frontaria, por sua vez apresenta indícios do período manuelino nos três pórticos que dão acesso a um edifício constituído por três naves, cujas abóbadas foram ornadas pelas pinturas de Nicolau Nasoni (século XVIII) representam imagens do antigo Testamento. Devota a Nossa Senhora da Assunção, a capela-mor representa o período barroco de forma notável, assim como as outras capelas funerárias, construídas em honra de alguns membros do episcopado.\r\nO Claustro é outro elemento que foi acrescentado no século XVI, sendo datado do período maneirista (transição gótico-renascimento).",
+      "poi_lat": 41.096389,
+      "poi_lon": -7.806945,
+      "poi_name": "Sé Catedral de Lamego",
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/",
+      "trip_duration": 197.4
+    },
+    {...},
+    {
+      "id": 704,
+      "images": "",
+      "poi_categ": "Quintas e Enotecas",
+      "poi_conc": "Tabuaço",
+      "poi_descript": "Ao visitar-nos poderá vivenciar parte activa da produção, que irá reporta-lo numa viagem que se inicia na explicação das vinhas e das diferentes castas até à prova do néctar. Percorrer todos os recantos que contam a realização do sonho, presenciando o cuidado e o pormenor da reabilitação da propriedade, onde a reutilização de materias e a presença de peças vintage farão sentir-se no seu próprio espaço. Num acompanhamento totalmente personalizado e ajustado às suas curiosidades como enófilo.",
+      "poi_lat": 41.153611,
+      "poi_lon": -7.601111,
+      "poi_name": "Quinta da Pôpa",
+      "source": " www.quintadopopa.com       http://www.cm-tabuaco.pt",
+      "trip_duration": 1750.1
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817479
+}</pre>                         
+                            </div>
+                        </div>
+                    </div>
+                        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseSix">Função: Devolve dados de um ponto através do ID</a>
+                            </h4>
+                        </div>
+                        <div id="collapseSix" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os dados de um ponto desejado através do seu ID.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 71 (Castelo de Lamego e Cisterna). Como tal irá devolver os dados relevantes a este ponto.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_id?<strong>id</strong>=<em>71&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre o ponto, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817583
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven">Função: Calcula uma rota eficiente baseado em tempo e pontuação de cada ponto</a>
+                            </h4>
+                        </div>
+                        <div id="collapseSeven" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve uma lista de pontos e os seus dados que formam uma rota optimizada caso se começe no ponto que o utilizador deu. Esta rota baseia-se no tempo passado em cada ponto e a sua pontuação perante o tempo máximo e o número de dias dados pelo utilizador. A implementação é baseado no algoritmo descrito <a href="https://www.sciencedirect.com/science/article/pii/S030505480900080X?via%3Dihub">aqui</a>.
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_calc_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>cat</strong>=<em>&lt;categoria&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho&gt;</em>&amp;<strong>dias</strong>=<em>&lt;numero de dias&gt;</em>&amp;<strong>tempo</strong>=<em>&lt;tempo maximo por dia&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>cat</strong>: ID da categoria dos pontos que deseja encontrar;<br>
+    <strong>Lista de category IDs:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Categoria</th>
+        <th>ID</th>
+      </tr>
+    {% for row in category  %}
+        <tr>
+            <td>{{row.categ_name_pt}}</td>
+            <td>{{row.categ_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>conc</strong>: ID do concelho dos pontos que deseja encontrar;<br>
+    <strong>Lista de concelho IDs:</strong>
+    <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Concelho</th>
+        <th>ID</th>
+      </tr>
+    {% for row in concelho  %}
+        <tr>
+            <td>{{row.conc_name}}</td>
+            <td>{{row.conc_id}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+•	<strong>dias</strong>: Numero de dias que o trajecto irá durar;<br>
+•	<strong>tempo</strong>: Tempo máximo em segundos que cada dia puderá durar;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto de inicio de ID 71 (Castelo de Lamego e Cisterna), limitando a rota à categoria 3 (Monumentos e locais de interesse) e no concelho 10 (Lamego). A rota dura 1 dia e cada dia tem um tempo limite de 16000 segundos.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_calc_id?<strong>id</strong>=<em>71&amp;</em><strong>cat</strong>=<em>3&amp;</em><strong>conc</strong>=<em>10&amp;</em><strong>dias</strong>=<em>1&amp;</em><strong>tempo</strong>=<em>16000&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista ordenada com os dados importantes sobre cada ponto da rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+ <strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "id": 586,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Concebidos como padrão de fé, emprestando espiritualidade aos caminhos ou locais onde se encontram implantados, os cruzeiros constituem um dos símbolos da vivência exterior da religião. Tal é o caso do cruzeiro dos Bom Jesus dos Terramotos e Perseguidos, cujas cartelas epigrafadas confirmam a sua invocação, acrescentado a dedicação a Nossa Senhora da Lapa, e o ano da edificação, 1757. \r\nA coluna ergue-se sobre uma base cúbica assente num degrau de granito quadrado. O capitel exibe duas cartelas com as inscrições referidas e, nas restantes faces, a representação de São José e Santo António. A cruz raiada, de braços trilobados, exibe, de um dos lados, Cristo crucificado e, do lado oposto, Nossa Senhora, referente à invocação de Nossa Senhora da Lapa, numa iconografia habitual neste género de padrão.",
+      "poi_lat": 41.100278,
+      "poi_lon": -7.822222,
+      "poi_name": "Cruzeiro do Bom Jesus dos Terramotose Perseguidos",
+      "source": "http://www.cm-lamego.pt/patrimonio/igrejas-e-conventos        http://www.patrimoniocultural.gov.pt       "
+    },
+    {...},
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817632
+}</pre>
+                                                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto de inicio de ID 71 (Castelo de Lamego e Cisterna), limitando a rota à categoria 3 (Monumentos e locais de interesse). A rota dura 1 dia e cada dia tem um tempo limite de 16000 segundos.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_calc_id?<strong>id</strong>=<em>71&amp;</em><strong>cat</strong>=<em>3&amp;</em><strong>dias</strong>=<em>1&amp;</em><strong>tempo</strong>=<em>16000&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista ordenada com os dados importantes sobre cada ponto da rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "id": 586,
+      "images": "",
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Concebidos como padrão de fé, emprestando espiritualidade aos caminhos ou locais onde se encontram implantados, os cruzeiros constituem um dos símbolos da vivência exterior da religião. Tal é o caso do cruzeiro dos Bom Jesus dos Terramotos e Perseguidos, cujas cartelas epigrafadas confirmam a sua invocação, acrescentado a dedicação a Nossa Senhora da Lapa, e o ano da edificação, 1757. \r\nA coluna ergue-se sobre uma base cúbica assente num degrau de granito quadrado. O capitel exibe duas cartelas com as inscrições referidas e, nas restantes faces, a representação de São José e Santo António. A cruz raiada, de braços trilobados, exibe, de um dos lados, Cristo crucificado e, do lado oposto, Nossa Senhora, referente à invocação de Nossa Senhora da Lapa, numa iconografia habitual neste género de padrão.",
+      "poi_lat": 41.100278,
+      "poi_lon": -7.822222,
+      "poi_name": "Cruzeiro do Bom Jesus dos Terramotose Perseguidos",
+      "source": "http://www.cm-lamego.pt/patrimonio/igrejas-e-conventos        http://www.patrimoniocultural.gov.pt       "
+    },
+    {...},
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817742
+}</pre>
+
+                                                                <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto de inicio de ID 71 (Castelo de Lamego e Cisterna), sem limitações em termos de categoria ou concelho. A rota dura 1 dia e cada dia tem um tempo limite de 16000 segundos.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_calc_id?<strong>id</strong>=<em>71&amp;</em><strong>dias</strong>=<em>1&amp;</em><strong>tempo</strong>=<em>16000&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista ordenada com os dados importantes sobre cada ponto da rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    },
+    {
+      "id": 598,
+      "images": "",
+      "poi_categ": "Centros Históricos",
+      "poi_conc": "Lamego",
+      "poi_descript": "O Centro Histórico de Lamego reflete a riqueza monumental e paisagística de uma zona localizada entre o Santuário da Nossa  Senhora dos Remédios, o Bairro do Castelo e as zonas adjacentes. ",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Centro Histórico de Lamego",
+      "source": "http://www.cm-lamego.pt\r\nhttp://noticiasdelamego.com/turismo/cidade-com-historia/"
+    },
+    {...},
+    {
+      "id": 71,
+      "images": [
+        "http://172.121.100.105/static/uploads/512px_512px_DSC03484.JPG"
+      ],
+      "poi_categ": "Monumentos e Locais de Interesse",
+      "poi_conc": "Lamego",
+      "poi_descript": "Reconhecido Monumento Nacional desde 1951, o Castelo de Lamego apresenta um conjunto de elementos testemunhos de várias épocas, reconhecida também a herança moura. Possui uma torre de menagem que atinge vinte metros de altura e com planta quadrangular. As suas frestas de iluminação foram transformadas em janelas no século XVI com o provável objetivo de adicionar a função habitacional. Também possui praça de armas de forma hexagonal e cuja muralha (cerca de noventa metros de perímetro) é dotada de adarve acessível pelo lado norte por um lanço de escadas. Existem duas portas que permitem aceder ao burgo do Castelo: a Porta dos Figos/Fogos do lado norte; a Porta do Sol do lado sul. A Casa da Torre que se situa ao lado do acesso norte, é agora base do Corpo Nacional de Escutas, e teve a função de Paços do Concelho até 1834.\r\nA Cisterna de Lamego situa-se extramuros da praça de armas. É de silharia rectangular e abobadada, com ogiva nervada sustentada por largas cintas apoiadas em pilares. Considerada com um dos melhores exemplos do género, foi reaberta em 2013 apresentando as memórias da vivência do burgo através de registos fotográficos e sonoros.",
+      "poi_lat": 41.099167,
+      "poi_lon": -7.808889,
+      "poi_name": "Castelo de Lamego e Cisterna ",
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1528817809
+}</pre>
+
+                            </div>
+                        </div>
+                    </div>
+                        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseEight">Função: Devolver rota entre dois pontos através dos seus IDs</a>
+                            </h4>
+                        </div>
+                        <div id="collapseEight" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os dados da rota entre dois pontos, usando o OSRM (Open Source Routing Machine).<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoi?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>id2</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>profile</strong>=<em>&lt;perfil_viagem&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto de partida;<br>
+•	<strong>id2</strong>: ID do ponto de chegada;<br>
+•	<strong>profile</strong>: Perfil de viagem, este pode ser walking ou driving (por defeito ou caso seja inválido utiliza driving)<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 83 (Parque Biológico de Lamego) e ID2 71 (Castelo de Lamego e Cisterna), com o perfil "walking". Como tal irá devolver a rota entre o ponto 83 e o ponto 71 caso esta seja feita a pé.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoi?<strong>id</strong>=<em>83&amp;</em><strong>id2</strong>=<em>71&amp;</em><strong>profile</strong>=<em>walking&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 4795.8,
+  "duration": 3453.2,
+  "geometry": "mw{yFhbzn@GoBg@}AOmGzAwKt@MxEx@WcA}B_F{DsCaHiCkAL{BvFw@X[g@D_GwC_I`BaBrAmCxEsAvBkLxCMpDvBzBmCLgFmEqJ|CoNOyA{BmE|@mJt@wBGmA}AsAa@yI}D}JrIcBrFhB~DEhIgK`KiDnCkBjB`BcAyA|Aq@C_@",
+  "status": "OK",
+  "timestamp": 1527156536
+}</pre>
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 83 (Parque Biológico de Lamego) e ID2 71 (Castelo de Lamego e Cisterna). Sem definir o perfil, irá por defeito escolher "driving". Como tal irá devolver a rota entre o ponto 83 e o ponto 71 caso esta seja feita de carro.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoi?<strong>id</strong>=<em>83&amp;</em><strong>id2</strong>=<em>71&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 6584.3,
+  "duration": 968.8,
+  "geometry": "mw{yFhbzn@GoBg@}AOmGzAwKt@MxEx@WcA}B_F{DsCaHiCkAL{BvFw@X[g@D_GwC_I`BaBrAmCxEsAvBkLxCMpDvBlBgBZmGiEiINkBbCm@lF\\tCbDrAdIxC`BxARxA|CtIzHf@F\\}@wBkFsEuAs@yDiAeBeBy@j@yDU{DeA_DsEaHQ_Gz@qBm@sGmGmOgB{Am@sCuD_DwB@Oq@rIcBrFhB~DEhIgKxDoAdA`DTB~DwAsAgD`Au@lAu@jB`B",
+  "status": "OK",
+  "timestamp": 1527156621
+}</pre>
+
+                            </div>
+                        </div>
+                    </div>
+                          <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseNine">Função: Devolver rota entre um POI e um par de coordenadas</a>
+                            </h4>
+                        </div>
+                        <div id="collapseNine" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os dados da rota entre um ponto definido pelo seu ID e um par de coordenadas, usando o OSRM (Open Source Routing Machine).<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoint?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>profile</strong>=<em>&lt;perfil_viagem&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID do ponto de partida;<br>
+•	<strong>lat</strong>: latitude do ponto de chegada<br>
+•	<strong>lon</strong>: longitude do ponto de chegada<br>
+•	<strong>profile</strong>: Perfil de viagem, este pode ser walking ou driving (por defeito ou caso seja inválido utiliza driving)<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 83 (Parque Biológico de Lamego) e as coordenadas (40,-7.0), com o perfil "walking". Como tal irá devolver a rota entre o ponto 83 e as coordenads caso esta seja feita a pé.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoint?<strong>id</strong>=<em>83&amp;</em><strong>lat</strong>=<em>40&amp;</em><strong>lon</strong>=<em>-7.0&amp;</em><strong>profile</strong>=<em>walking&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 187500.1,
+  "duration": 134997.4,
+  "geometry": "mw{yFhbzn@eDwdDdfB}sApgHyk@tmCejHbeGaf@iDmlCbsBkv@b~Be`EhlBulF{HihBrjHkoCr{A}kBxAy{AfuA~Or`D{eBtvGouIxdA}rDhoIahBtWg|B|hBwd@fq@esAcXwfArsB}nBnbD`J~hB_qJr|CafElfEr_@p`EgvArp@ifEjeIw}Ej`Fc_LtdKeiCjvLrT|a@}y@brBh@|fBifCbTbv@j_Aav@xvIhf@jlBcgAvcDdFnqAy{DyYc|DpqCqyCnxEjYbVglApaBtYru@a`AvzCh`BvcBwaDh|BgC",
+  "status": "OK",
+  "timestamp": 1527157984
+}</pre>
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 83 (Parque Biológico de Lamego) e e as coordenadas (40,-7.0). Sem definir o perfil, irá por defeito escolher "driving". Como tal irá devolver a rota entre o ponto 83 e as coordenadas caso esta seja feita de carro.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_poipoint?<strong>id</strong>=<em>83&amp;</em><strong>lat</strong>=<em>40&amp;</em><strong>lon</strong>=<em>-7.0&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 235278.7,
+  "duration": 11742.6,
+  "geometry": "mw{yFhbzn@l@ccBvh@b`@tw@guDp}@yLdgAlhEpbCzqAw@bdBfzEv|CrlEmG`uDv~@tgDbzCnjBweA|qMnbEx}RycBfkDhdCb`AedA|xBgxLxmDiCzoAiiBcCsxEhmByfJxEk{Ym_A}rCxwBgpE_}DoiRfhAoqJuN{wEeyAozCi]ojIt~EgiDh{Mg~AddCikD`wEbFj`Fc_L`wKquClvB{gEhcI|vGlqAz}HxnEl|C|bEm_DjsAewG`wAmr@tfClqEpz@wu@vYniAfyGoc@tgBy_B||I|eEkhAewSdmFc`P",
+  "status": "OK",
+  "timestamp": 1527087600
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTen">Função: Devolver rota entre um par de coordenadas e um POI</a>
+                            </h4>
+                        </div>
+                        <div id="collapseTen" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os dados da rota entre um par de coordenadas e um ponto definido pelo seu ID, usando o OSRM (Open Source Routing Machine).<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_pointpoi?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>profile</strong>=<em>&lt;perfil_viagem&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>lat</strong>: latitude do ponto de partida<br>
+•	<strong>lon</strong>: longitude do ponto de partida<br>
+•	<strong>id</strong>: ID do ponto de chegada;<br>
+•	<strong>profile</strong>: Perfil de viagem, este pode ser walking ou driving (por defeito ou caso seja inválido utiliza driving)<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o par de coordenadas (40,-7.0) e o ID 83 (Parque Biológico de Lamego), com o perfil "walking". Como tal irá devolver a rota entre o ponto 83 e o ponto 71 caso esta seja feita a pé.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_pointpoi?<strong>lat</strong>=<em>40&amp;</em><strong>lon</strong>=<em>-7.0&amp;</em><strong>id</strong>=<em>83&amp;</em><strong>profile</strong>=<em>walking&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 187500.1,
+  "duration": 134997.4,
+  "geometry": "ukcsFzksi@i|BfCwcBvaDwzCi`Bsu@``AqaBuYcVflAoxEkYqqCpyCxYb|DoqAx{DwcDeFklBbgAyvIif@k_A`v@cTcv@}fBhfCcrBi@}a@|y@kvLsTudKdiCk`Fb_LkeIv}Esp@hfEq`EfvAmfEs_@s|C`fE_iB~pJobDaJssB|nBbXvfAgq@dsA}hBvd@uWf|BioI`hBydA|rDuvGnuIs`DzeBguA_PyAx{As{A|kBsjHjoCzHhhBilBtlFc~Bd`EcsBjv@hDllCceG`f@umCdjHqgHxk@efB|sAdDvdD",
+  "status": "OK",
+  "timestamp": 1527260942
+}</pre>
+                                <h4> Exemplo 2 </h4>
+<br>
+No seguinte exemplo é chamada a função com o par de coordenadas (40,-7.0) e o ID 83 (Parque Biológico de Lamego). Sem definir o perfil, irá por defeito escolher "driving". Como tal irá devolver a rota entre o ponto 83 e o ponto 71 caso esta seja feita de carro.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/osrm_pointpoi?<strong>lat</strong>=<em>40&amp;</em><strong>lon</strong>=<em>-7.0&amp;</em><strong>id</strong>=<em>83&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>Distance</strong>: Distancia que a rota percorre em metros;<br>
+    <strong>Duration</strong>: Tempo que a rota demora a percorrer em segundos;<br>
+    <strong>Geometry</strong>: Polyline da rota;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "distance": 235084.5,
+  "duration": 11679,
+  "geometry": "}mgsFreti@emFb`P||@j|SoqIckEugBx_BguGhc@k_@yiAqaAds@a~BknEawAlr@ksAdwG}bEl_DynEm|CmqA{}HmcIqwGivBnhEawKpuCk`Fb_Lg~EcGi|B`hDs}M~aB_}ErhDj\\dlIdxAlvCvOb{EihA~qJb}DxhRywBjrEr_AnpCcFz|YcmBleJpCrwEinAniBcoDvDk~Dt~N}fDqfCu}RxcB}qMsbEkjBxeAqgD{yCeuD__AulEjG}yEu|CbAscBybC{qAy_A}iEsnDjbBxo@f`Bei@s^m@bcB",
+  "status": "OK",
+  "timestamp": 1527261165
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseEleven">Função: Devolver dados sobre uma rota baseado no seu ID</a>
+                            </h4>
+                        </div>
+                        <div id="collapseEleven" class="panel-collapse collapse">
+                            <div class="panel-body">
+Esta função devolve os dados de uma rota na base de dados utilizando o ID desta na base de dados.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_id?<strong>id</strong>=<em>&lt;Route_ID&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+Parâmetros de entrada:<br>
+                                <ul> 
+•	<strong>id</strong>: ID da rota desejada;<br>
+•	<strong>key</strong>: chave da API que o utilizador tem.<br>
+                                    </ul> 
+                                <h4> Exemplo 1 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ID 7, devolvendo assim os dados relevantes a esta rota<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/route_id?<strong>id</strong>=<em>7&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os dados importantes sobre a rota, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+    <strong>id</strong>: ID da rota;<br>
+    <strong>route_distance</strong>: Distancia da rota em metros;<br>
+    <strong>route_duration</strong>: Duração da rota em segundos;<br>
+    <strong>route_pois</strong>: Lista com os dados dos pontos pertencentes á rota:<br>
+                                    <ul>
+        •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+        •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+        •	<strong>poi_name</strong>: Nome deste ponto;<br>
+        •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+        •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+        •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+        •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+        •	<strong>poi_descript</strong>: Descrição do ponto.<br>
+                                    </ul>
+    <strong>travel_mode</strong>: Modo de viagem que a rota utiliza;<br>
+    <strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+    <strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "result": [
+    {
+      "id": 7,
+      "route_distance": 253521.7,
+      "route_duration": 19191.6,
+      "route_name": "Belveders route",
+      "route_pois": [
+        {
+          "poi_lat": 41.019167,
+          "poi_lon": -7.501945,
+          "poi_name": "Miradouro da Senhora da Alegria",
+          "id": 86,
+          "images": "",
+          "poi_categ": "miradouros e paisagem ",
+          "poi_conc": "São João da Pesqueira",
+          "poi_descript": "Miradouro situado a 630 metros de altitude onde é possível observar as casas típicas da região e as belas paisagens proporcionadas pelas montanhas em redor. A histórica e pitoresca aldeia de Riodades é digna de ser visitada.\r\nDe destacar no miradouro a capela da Sra. da Alegria com acesso de automóvel ou a pé, através de um elegante escadório. Um tesouro bem guardado longe das estradas e dos grandes centros urbanos, faz parte de um património secular. Um património construído a pulso e que, por isso, tem uma dimensão humana muito forte e muito própria.",
+          "to_poi_descript": "O miradouro da Senhora d’Alegria com acesso de automóvel ou a pé, através de um elegante escadório, está situado a 630 metros de altitude. Miradouro onde é possível observar as casas típicas da região e as belas paisagens proporcionadas pelas montanhas em redor. A histórica e pitoresca aldeia de Riodades é digna de ser visitada. O próximo ponto de paragem é o miradouro da Nª Srª da Assunção. Situado a cerca de 8 km do Miradouro da Srª da Alegria, no cimo do Outeiro Alto a 834 metros de altitude, o miradouro possui a capela da Senhora da Assunção, uma construção do século XVIII.\r\nUsufrui de um panorama belíssimo tanto para o Douro como para a Beira-Alta, veem-se dali as serras da Estrela e do Marão.  "
+        },
+        {
+          "poi_lat": 41.065,
+          "poi_lon": -7.471945,
+          "poi_name": "Miradouro de Nossa Senhora da Assunção",
+          "id": 88,
+          "images": "",
+          "poi_categ": "miradouros e paisagem ",
+          "poi_conc": "Moimenta da Beira",
+          "poi_descript": "Situado no cimo do Outeiro Alto a 834 metros de altitude, o miradouro possui a capela da Senhora da Assunção, uma construção do século XVIII.\r\nUsufrui de um panorama belíssimo tanto para o Douro como para a Beira-Alta, veem-se dali as serras da Estrela e do Marão.  \r\nA capela da Senhora da Assunção é uma construção do século XVIII toda em pedra rebocada e caiada. No interior tem um altar com retábulo formado por quatro colunas de madeira com talha dourada e ornamentada com anjos.",
+          "to_poi_descript": "Os próximos 7 km que separam o miradouro da Srª da Assunção do miradouro da Ermida de Stª Cruz, permitem apreciar a beleza da paisagem duriense. O miradouro de Santa Cruz encontra-se localizado na Ermida de Santa Cruz a 714 metro de altitude ladeado de floresta e vinhas.\r\nDeste ponto é possível ver a norte o vale do rio Torto e no horizonte o concelho de S. João da Pesqueira, a sul avista-se o vale do rio Távora e a vila de Tabuaço e o Mosteiro de São Pedro das Águias.\r\nVale a pena subir à ermida de Santa Cruz, local onde antigamente se faziam as romarias de veneração. Festeja-se a Santa Cruz, a 3 de Maio."
+        },
+        {...},
+        {
+          "poi_lat": 41.061944,
+          "poi_lon": -7.436389,
+          "poi_name": "Miradouro de São Paio",
+          "id": 95,
+          "images": "",
+          "poi_categ": "miradouros e paisagem ",
+          "poi_conc": "São João da Pesqueira",
+          "poi_descript": "O miradouro de São Paio é o mais elevado de S. João da Pesqueira. Tem 910 metros de altitude e uma linha de horizonte muito vasta. Possui uma capela dedicada a São Paio e um parque de merendas.\r\nPaisagem de grande alcance visual, onde se avistam populações e as serras e campos de lavoura. No sopé do miradouro encontra-se a histórica vila de Trevões e o seu rico património histórico. Uma paisagem digna de ser contemplada.\r\nA capela existente é dedicada a São Paio, mártir cordovês do século X, a quem o povo pede auxílio quando está com febres.",
+          "to_poi_descript": ""
+        }
+      ],
+      "travel_mode": "driving"
+    }
+  ],
+  "status": "OK",
+  "timestamp": 1527671649
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                </div>
+                <!-- /.panel-group -->
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+        {% endblock %}
+        <!-- Footer -->
+        {%block tail_content%}
+
+            <!-- jQuery -->
+    <script src="/static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+        
+        <!-- Code Prettify -->
+        
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+            
+            <script>
+                $('#accordion').on('shown.bs.collapse', function () {
+
+                  var panel = $(this).find('.in');
+
+                  $('html, body').animate({
+                        scrollTop: panel.offset().top - 50
+                  }, 500);
+
+                });
+            </script>
+        
+        {% endblock %}
+
+
+

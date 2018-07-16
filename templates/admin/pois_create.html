@@ -1,0 +1,293 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" xmlns="http://www.w3.org/1999/html">
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.timepicker.css" />
+
+   <style>
+    .addNewimgField_btn{margin-left:100px;}
+    .removebtn_img_field{margin-left:100px;}
+   </style>
+
+    <style>
+        .my-error-class {
+            color:#FF0000;  /* red */
+            }
+            .my-valid-class {
+                color:#00CC00; /* green */
+            }
+    </style>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+
+<div class="container">
+    <div class="panel panel-primary col-md-10">
+        <div class="panel-heading">
+            <h3 class="panel-title">Create POIS</h3>
+        </div>
+
+        <div class="panel-body">
+             <form class="form-horizontal" name="addPOI" id="addPOI"
+                method="POST"
+                action="{{ url_for('.create_pois') }}"
+                enctype="multipart/form-data"
+                role="form">
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">POI Name</label>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="poi_name" name="poi_name">
+                </div>
+                <div class="col-md-4">
+                  <label>(*) Fields Required.</label>
+                </div>
+                <span id="status"></span>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Address</label>
+                <div class="col-md-8">
+                  <input type="text" class="form-control" id="poi_address" name="poi_address">
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Telephone</label>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="poi_phone" name="poi_phone">
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Email</label>
+                <div class="col-md-6">
+                  <input type="email" class="form-control" id="poi_email" name="poi_email">
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Website</label>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="poi_website" name="poi_website">
+                </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Category</label>
+                    <div class="col-md-6">
+                      <select class="form-control" id="select_categ" name="select_categ">
+                          <option  selected disabled>-Select-</option>
+                          {% for c in poi_cat %}
+                           <option value="{{ c.categ_id }}">{{ c.categ_name_pt }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                </div>
+                 
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">County</label>
+                    <div class="col-md-6">
+                      <select class="form-control" id="select_conc" name="select_conc">
+                          <option  selected disabled>-Select-</option>
+                          {% for c in poi_conc %}
+                           <option value="{{ c.conc_id }}">{{ c.conc_name }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                </div>
+                 
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">POI Score</label>
+                        <div class="col-md-2">
+                            <select class="form-control" id="select_score" name="select_score">
+                                <option selected disabled>-Select One-</option>
+                                {% for i in range(1, 11) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %} 
+                            </select>
+                        </div>
+                    </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Latitude</label>
+                    <div class="col-md-2">
+                      <input type="number" class="form-control" id="lat_degree" name="lat_degree" placeholder="degree" >
+                    </div>
+
+                    <div class="col-md-2">
+                    <input type="number" class="form-control" id="lat_minute" name="lat_minute" placeholder="minute">
+                    </div>
+
+                    <div class="col-xs-2">
+                    <input type="number" class="form-control" id="lat_second" name="lat_second" placeholder="second">
+                    </div>
+
+                    <div class="col-md-2">
+                      <select class="form-control" id="lat_direction" name="lat_direction" title="*" required>
+                          <option value="n">North</option>
+                          <option value="s">South</option>
+                      </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Longitude</label>
+                    <div class="col-md-2">
+                      <input type="number" class="form-control" id="long_degree" name="long_degree" placeholder="degree">
+                    </div>
+
+                    <div class="col-md-2">
+                    <input type="number" class="form-control" id="long_minute" name="long_minute" placeholder="minute">
+                    </div>
+
+                    <div class="col-md-2">
+                    <input type="number" class="form-control" id="long_second" name="long_second"placeholder="second">
+                    </div>
+
+                    <div class="col-md-2">
+                      <select class="form-control" id="long_direction" name="long_direction" title="*" required>
+                          <option value="w">West</option>
+                          <option value="e">East</option>
+                      </select>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Short description</label>
+                <div class="col-md-8">
+                  <textarea class="form-control" rows="8" id="poi_descri_pt_short" name="poi_descri_pt_short" placeholder="Language1" datatype="text"></textarea>
+                </div>
+                </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+                    <div class="col-md-8">
+                      <textarea class="form-control" rows="8" id="poi_descri_en_short" name="poi_descri_en_short" placeholder="Language2" datatype="text"></textarea>
+                    </div>
+                </div>
+                 
+                                 <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Long description</label>
+                <div class="col-md-8">
+                  <textarea class="form-control" rows="8" id="poi_descri_pt_long" name="poi_descri_pt_long" placeholder="Language1" datatype="text"></textarea>
+                </div>
+                </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+                    <div class="col-md-8">
+                      <textarea class="form-control" rows="8" id="poi_descri_en_long" name="poi_descri_en_long" placeholder="Language2" datatype="text"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Notes</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" rows="4" id="poi_notes" name="poi_notes" datatype="text"></textarea>
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Source Information</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" rows="4" id="poi_soure_info" name="poi_source_info" datatype="text"></textarea>
+                </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Open/close Hours</label>
+                        <div class="form-group">
+                            <div class="col-md-2">
+                              <input type="text" class="form-control" id="poi_open" name="poi_open[]" placeholder="open Hour">
+                            </div>
+
+                            <div class="col-md-2 ">
+                              <input type="text" class="form-control ui-timepicker-duration" id="poi_close" name="poi_close[]"  placeholder="close Hour" >
+                            </div>
+                            <button type="button" class="addNewField_btn btn-primary">Add New Field</button>
+                        </div>
+
+                </div>
+
+                <!-- ADD Dynamic Fields Here-->
+                 <div class="form-group time_create_field "></div>
+
+                <div class="form-group">
+                    <label for="visitduration" class="col-md-2 control-label">Duration of Visit</label>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" id="visitduration" name="visitduration">
+                    </div>
+
+                </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">open/close?</label>
+                    <div class="col-md-4">
+                       <input type="radio"  name="typeradio_poi" value="1" checked>Open
+                       <input type="radio"  name="typeradio_poi" value="0">Close
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Image</label>
+                    <div class="col-md-4">
+                        <input type="file" class="file-upload"  id="imagefile" name="imagefile[]" >
+                    </div>
+                    <div class="col-sm-4" id="imageContainer" ></div>
+                    <button type="button" class="addNewimgField_btn btn-primary">Add New Field</button>
+
+                </div>
+
+                <!-- ADD Dynamic Fields Here-->
+                 <div class="form-group new_img_field ">
+
+                 </div>
+                 
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is POI complete?</label>
+                        <div class="col-md-4">
+                           <input type="radio"  name="poistate_radio" value="1" checked>Yes
+                           <input type="radio"  name="poistate_radio" value="0">No
+                        </div>
+                    </div> 
+                 
+                   <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is the Language2 verified?</label>
+                        <div class="col-md-4">
+                           <input type="radio"  name="poistate_radio_en" value="1" checked>Yes
+                           <input type="radio"  name="poistate_radio_en" value="0">No
+                        </div>
+                    </div>     
+
+                <div class="col-md-offset-4 col-md-4">
+                  <button type="submit" class="btn btn-primary" id="btnSave">Submit</button>
+                  <a href="{{ url_for('.list_pois') }}"><button type="button" class="btn btn-primary">Cancel</button></a>
+                 </div>
+            </form>
+
+        </div>
+    </div>
+
+
+</div>
+
+
+{% endblock %}
+
+
+{% block tail %}
+    <script src="/static/js/jquery-1.12.4.js"></script>
+    <script src="/static/js/jquery.validate.js"></script>
+    <script src="/static/js/jquery.timepicker.js"></script>
+    <script src="/static/js/maskedinput.min.js"></script>
+
+    <!-- Project Script -->
+    <script src="/static/pois_create.js"></script>
+{% endblock %}

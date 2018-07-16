@@ -1,0 +1,160 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+        integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
+        crossorigin=""/>
+
+    <style type="text/css">
+        p {
+            text-indent: 50px;
+        }
+
+        .container {
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+            max-width: 1000px;
+            overflow: hidden;
+            min-height: 700px !important;
+        }
+
+        #mymap {
+            width: auto;
+            height: 400px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        var lan = parseFloat('{{ poi.poi_lat }}');
+        var lon = parseFloat('{{ poi.poi_lon }}');
+        var poiName = '{{ poi.poi_name}}';
+        var poiimage = [];
+
+        {%  for img in poi.poi_image %}
+            poiimage.push(String('{{ img.copy_img }}'));
+        {% endfor %}
+
+        var info = '<div>' +
+                '<b>Latitude: </b>' +
+                ' {{ convert_decimalto_dms(poi.poi_lat).get("degree") }}&deg; ' +
+                '{{ convert_decimalto_dms(poi.poi_lat).get("minute") }} &#39; ' +
+                '{{ convert_decimalto_dms(poi.poi_lat).get("second") }}&quot; ' +
+                '{% if convert_decimalto_dms(poi.poi_lat).get("direction_state") %}'+
+                    ' N'+
+                    '{% else %}'+
+                    ' S'+
+                    '{% endif %}' +
+
+                '<br><b>Longitude:</b>' +
+                ' {{ convert_decimalto_dms(poi.poi_lon).get("degree") }}&deg; ' +
+                '{{ convert_decimalto_dms(poi.poi_lon).get("minute") }} &#39; ' +
+                '{{ convert_decimalto_dms(poi.poi_lon).get("second") }}&quot; ' +
+                '{% if convert_decimalto_dms(poi.poi_lon).get("direction_state") %}'+
+                    ' E'+
+                    '{% else %}'+
+                    ' W'+
+                    '{% endif %}<br/>' +
+                ' </div>'
+    </script>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <div class="container">
+
+        <div class="row text-info">
+            <div class="col-md-6">
+                <h4>{{ poi.poi_name | title }}(<b>{{ categoryname | capitalize }}</b>)</h4>
+                Last Updated: {{ last_update }}
+            </div>
+            <div class="h5">Reads
+                <input type="radio" name="descript" value="1">Language1
+                <input type="radio" name="descript" checked="checked" value="0">Language2
+            </div>
+        </div>
+        <hr>
+
+        <div class="row">
+	    <div class="col-md-4">
+		{% if img.original_img|length > 0 %}
+		     <img src="/static/uploads/{{ img.original_img }}" class="img-thumbnail" alt="" width="300" height="200"/>
+        {% else %}
+             <img src="/static/uploads/300x200.png" class="img-thumbnail" alt="" width="300" height="200"/>
+                {% endif %}
+	    </div>
+            <div class="col-md-8">
+                <div id="read_description_pt" class="read" style="display: none">
+                    <p class="text-justify"> <strong>Short description Language1:</strong> {{ poi.poi_descri_pt_short }}</p>
+                    <p class="text-justify"> <strong>Long description Language1:</strong> {{ poi.poi_descri_pt_long }}</p>
+                </div>
+                <div id="read_description_en" class="read" style="display: block">
+                    <p class="text-justify"> <strong>Short description Language2:</strong>: {{ poi.poi_descri_en_short }}</p>
+                    <p class="text-justify"> <strong>Long description Language2:</strong>: {{ poi.poi_descri_en_long }}</p>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div id="mymap"></div>
+            </div>
+            <div class="text-info col-md-4">
+                <h4>Schedule and Contacts Info</h4><hr>
+
+                <b>Open:</b>
+                {% for item in poi.poi_schedule %}
+                        {{ convertdecimaltotime(item.poi_open_h) }},
+                {% endfor %}
+
+                <br>
+
+                <b>Close:</b>
+                     {% for item in poi.poi_schedule %}
+                    {{ convertdecimaltotime(item.poi_close_h) }},
+                {% endfor %}<br>
+
+                {% if contact.telephone %}
+                    <b>Telephone:</b> {{ contact.telephone }}<br>
+                {% endif %}
+
+                {% if  contact.email %}
+                    <b>Email:</b> {{ contact.email }}<br>
+                {% endif %}
+
+
+                {% if poi.poi_address  %}
+                    <b>Address:</b> {{ poi.poi_address}}<br>
+                {% endif %}
+
+                {% if contact.website %}
+                    <b>Website:</b> <a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a><br>
+                {% endif %}
+
+                {% if poi.poi_notes %}
+                    <hr>
+                    <h4>Annotation</h4><hr>{{ poi.poi_notes }}
+                {% endif %}
+
+                {% if poi.poi_source %}
+                       <hr>
+                    <h4>Information Sources</h4>{{ poi.poi_source }}
+                {% endif %}
+             <hr>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block tail %}
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
+        integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
+        crossorigin="">
+    </script>
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="/static/pois_detailview.js"></script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="container"><br>
+    <div class="panel panel-success col-md-10">
+            <div class="panel-heading">
+                <h3 class="panel-title"> <hr> <h2 class="intro-text text-center">Signin to FlaskLogin(Todo) Application</h2><hr></h3>
+            </div>
+        <br>
+        <div class="panel-body">
+             <hr> <h3 class="intro-text text-center">Signin to FlaskLogin(Todo) Application </h3><hr>
+            <form class="form-horizontal" id="userForm"
+                method="POST"
+                action="{{ url_for('login') }}"
+                role="form">
+
+                <div class="form-group">
+                <label for="user_name" class="col-sm-4 control-label"></label>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" name="user_name" id="user_name" placeholder="Enter user name">
+                </div>
+                </div>
+
+                <div class="form-group">
+                <label for="user_password" class="col-sm-4 control-label"></label>
+                <div class="col-sm-4">
+                   <input type="password" class="form-control"  name="user_password" id="user_password"  placeholder="Enter password">
+                </div>
+                </div>
+
+
+
+                <div class="col-sm-offset-4 col-sm-8">
+                  <button type="submit" class="btn btn-success">SignIn</button>
+                  <a href="{{ url_for('home')}}"><button type="button" class="btn btn-success">Cancel</button></a>
+              </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_content %}
+     <!-- jQuery -->
+    <script src="/static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+{% endblock %}

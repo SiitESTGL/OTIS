@@ -1,0 +1,69 @@
+{% extends 'admin/master.html' %}
+
+
+{% block head_content %}
+
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.bootstrap.min.css">
+
+    <style>
+        th{
+            text-align: center;
+            background-color: #428bca;
+            color: white;
+        }
+        #create{
+            text-align: left;
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block page_content %}
+    <table class="table table-hover" id="logs" cellspacing="0" width="100%">
+
+          <thead class="th" style="font-size: 90%" >
+            <tr>
+              <th>ID</th>
+              <th>User ID</th>
+              <th>Query</th>
+              <th>Access Date</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+
+          <tbody>
+              {% for log in log_info %}
+                <tr>
+                  <td>{{ log.id }}</td>
+                  <td>{{ log.user_id }}</td>
+                  <td>{{ log.query}}</td>
+                  <td>{{ log.date }}</td>
+                  <td>{{ log.IP }}</td>
+                </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+
+{% endblock %}
+
+
+{% block tail %}
+    <script src="{{ url_for('static', filename='js/jquery-1.12.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+
+    <script>
+    $(document).ready(function()
+    {
+        $('#logs').dataTable({
+            "aLengthMenu": [[25, 50, 75, -1], [25, 50, 75, "All"]],
+            "iDisplayLength": 25,
+            "order": [[ 0, "desc" ]]
+        });
+
+    } );
+    </script>
+
+{% endblock %}

@@ -1,0 +1,333 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <!-- Bootstrap Core CSS -->
+   <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.timepicker.css" />
+   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+
+    <script type="text/javascript">
+        var route_circle = '{{ info_route.route_isCircle| int }}';
+    </script>
+
+     <style>
+        .my-error-class {
+            color:#FF0000;  /* red */
+            }
+            .my-valid-class {
+                color:#00CC00; /* green */
+            }
+     </style>
+
+{% endblock %}
+
+
+{% block page_content %}
+    <input type="hidden" class="form-control" id="route_id" name="route_id" value="{{ info_route.id }}">
+
+
+<div class="container">
+    <div class="panel panel-primary col-md-10">
+        <div class="panel-heading">
+            <h3 class="panel-title">Edit Routes</h3>
+        </div>
+
+        <div class="panel-body">
+             <form class="form-horizontal" name="addRoute" id="addRoute"
+                method="POST"
+                action="{{ url_for('.edit_route', route_id = info_route.id) }}"
+                enctype="multipart/form-data"
+                role="form">
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Route Name</label>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="input_routename" name="input_routename" value="{{ info_route.route_name }}">
+                </div>
+                </div>.
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Mode of Travel</label>
+                <div class="col-md-2">
+                  <select class="form-control" id="mode_travel" name="mode_travel">
+                      <option  selected disabled>-Select-</option>
+                      {% if info_route.mode_travel  == "driving" %}
+                          <option value="driving" selected="selected">Driving</option>
+                          <option value="walking">Walking</option>
+                          <option value="bicycling">Bicycling</option>
+                      {% endif %}
+
+                      {% if info_route.mode_travel  == "walking" %}
+                          <option value="walking" selected="selected">Walking</option>
+                          <option value="driving">Driving</option>
+                          <option value="bicycling">Bicycling</option>
+                      {% endif %}
+
+                       {% if info_route.mode_travel  == "bicycling" %}
+                          <option value="bicycling" selected="selected">Bicycling</option>
+                          <option value="walking">Walking</option>
+                          <option value="driving">Driving</option>
+                      {% endif %}
+                  </select>
+                </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Poi's</label>
+
+                    {% for default_value in default_value %}
+                     
+                    <div class="col-md-8 ">
+                      <input type="text" class="form-control"   name="start_pois_label" value="{{ default_value[0].get("start_poi_name") }}" placeholder="Start Poi" data-field="{{default_value[4]}}"/>
+                      <!-- <input type="text" class="form-control" name="start_pois_value[]" value="{{ default_value[0].get("start_poi_id") }}" placeholder="POI ID" data-field="{{default_value[4]}}" disabled/> -->
+                      <input type="hidden" class="form-control" name="start_pois_value[]" value="{{ default_value[0].get("start_poi_id") }}" placeholder="POI ID" data-field="{{default_value[4]}}"/>
+                      <label class="my-error-class" name="start_pois_label-error2" data-field="{{default_value[4]}}" style="display: none;">please, enter start poi name</label>
+
+                      <textarea class="form-control" placeholder="Description between these points(Portugues)" rows="4"  name="input_descriptwopois_pt[]" datatype="text">{{ default_value[1].get("route_descript_pt") }}</textarea>
+                      <br><textarea class="form-control" placeholder="Description between these points(English)" rows="4"  name="input_descriptwopois_en[]" datatype="text">{{ default_value[2].get("route_descript_en") }}</textarea>
+
+                      <!-- This hidden field -->
+                      <input type="text" class="form-control" name="end_pois_label" value="{{ default_value[3].get("end_poi_name") }}" placeholder="End Poi" data-field="{{default_value[4]}}"/>
+                      <!--<input type="text" class="form-control" name="end_pois_value[]" value="{{ default_value[3].get("end_poi_id") }}" placeholder="POI ID" data-field="{{default_value[4]}}" disabled/> -->
+                      <input type="hidden" class="form-control" name="end_pois_value[]" value="{{ default_value[3].get("end_poi_id") }}" placeholder="POI ID" data-field="{{default_value[4]}}"/>
+                      <label class="my-error-class" name="end_pois_label-error2" data-field="{{default_value[4]}}" style="display: none;">please, enter start poi name</label>
+                      <!-- End hidden field -->
+                      <label for="name" class="col-md-4 control-label">Is Sequence Valid?:</label>
+                      
+                      {% if default_value[5] == 1 %}
+                        <input id="radio" type="radio"  name="sequence_review_radio{{default_value[4]}}" value="1" checked="true">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{default_value[4]}}" value="0">No
+                      {% else %}
+                        <input id="radio" type="radio"  name="sequence_review_radio{{default_value[4]}}" value="1">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{default_value[4]}}" value="0" checked="true">No
+                      {% endif %}
+                        
+                    </div>
+                    
+                    {% endfor %}
+                     <button type="button" class="addNewField_btn btn-primary">Add Field</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+
+                    <div class="route_edit_wrap col-md-8 ">
+                      {% for row in info_route2  %}
+                        
+                        {% if info_route.route_isCircle == 1 %}
+                        
+                            {% if not loop.last %}
+                              <div><br>
+                              <input type="text" class="form-control"   name="start_pois_label" value="{{ row[0].get("start_poi_name")}}" placeholder="Start Point" data-field="{{row[4]}}"/>
+                              <!-- <input type="text" class="form-control"   name="start_pois_value[]" value="{{ row[0].get("start_poi_id")}}" data-field="{{row[4]}}" disabled/> -->
+                              <input type="hidden" class="form-control"   name="start_pois_value[]" value="{{ row[0].get("start_poi_id")}}" data-field="{{row[4]}}"/>
+                              <label class="my-error-class" name="start_pois_label-error2" data-field="{{row[4]}}" style="display: none;">please, enter start poi name</label>
+
+                              <textarea class="form-control" placeholder="Description between these points(Portugues)" rows="4" id="input_routeDescript_pt" name="input_descriptwopois_pt[]"  datatype="text">{{ row[1].get("route_descript_pt") }}</textarea>
+                              <textarea class="form-control" placeholder="Description between these points(English)" rows="4" id="input_routeDescript_en" name="input_descriptwopois_en[]"  datatype="text">{{ row[2].get("route_descript_en") }}</textarea>
+
+                              <!-- This hidden field -->
+                              <input type="text" class="form-control" name="end_pois_label" value="{{ row[3].get("end_poi_name")}}" placeholder="End Point" data-field="{{row[4]}}"/>
+                              <!-- <input type="text" class="form-control" name="end_pois_value[]" value="{{ row[3].get("end_poi_id") }}" data-field="{{row[4]}}" disabled/> -->
+                              <input type="hidden" class="form-control" name="end_pois_value[]" value="{{ row[3].get("end_poi_id") }}" data-field="{{row[4]}}"/>
+                              <label class="my-error-class" name="end_pois_label-error2" data-field="{{row[4]}}" style="display: none;">please, enter start poi name</label>
+                    <label for="name" class="control-label">Is Sequence Valid?:</label>
+                 {% if row[5] == 1 %}
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="1" checked="true">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="0">No
+                      {% else %}
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="1">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="0" checked="true">No
+                      {% endif %}
+                        <br>
+                        <a href="#"<button type="button" class="remove_field btn-primary" data-field="{{row[4]}}">Remove</button></a>
+                    </div>
+                              <!-- End hidden field -->
+                         {% endif %}
+                 
+                     {% else %}
+                         <div><br>
+                         <input type="text" class="form-control"   name="start_pois_label" value="{{ row[0].get("start_poi_name")}}" placeholder="Start Point" data-field="{{row[4]}}"/>
+                         <!-- <input type="text" class="form-control"   name="start_pois_value[]" value="{{ row[0].get("start_poi_id")}}" data-field="{{row[4]}}" disabled/> -->
+                         <input type="hidden" class="form-control"   name="start_pois_value[]" value="{{ row[0].get("start_poi_id")}}" data-field="{{row[4]}}"/>
+                         <label class="my-error-class" name="start_pois_label-error2" data-field="{{row[4]}}" style="display: none;">please, enter start poi name</label>
+
+                         <textarea class="form-control" placeholder="Description between these points(Portugues)" rows="4" id="input_routeDescript_pt" name="input_descriptwopois_pt[]"  datatype="text">{{ row[1].get("route_descript_pt") }}</textarea>
+                         <textarea class="form-control" placeholder="Description between these points(English)" rows="4" id="input_routeDescript_en" name="input_descriptwopois_en[]"  datatype="text">{{ row[2].get("route_descript_en") }}</textarea>
+
+                         <!-- This hidden field -->
+                         <input type="text" class="form-control" name="end_pois_label" value="{{ row[3].get("end_poi_name")}}" placeholder="End Point" data-field="{{row[4]}}"/>
+                         <!--<input type="text" class="form-control" name="end_pois_value[]" value="{{ row[3].get("end_poi_id") }}" data-field="{{row[4]}}" disabled/> -->
+                         <input type="hidden" class="form-control" name="end_pois_value[]" value="{{ row[3].get("end_poi_id") }}" data-field="{{row[4]}}"/>
+                         <label class="my-error-class" name="end_pois_label-error2" data-field="{{row[4]}}" style="display: none;">please, enter start poi name</label>
+                             
+                         <label for="name" class="control-label">Is Sequence Valid?:</label>
+                      {% if row[5] == 1 %}
+                        
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="1" checked="true">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="0">No
+                      {% else %}
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="1">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio{{row[4]}}" value="0" checked="true">No
+
+                      {% endif %}
+                             <br>
+                      <a href="#" <button type="button" class="remove_field btn-primary" data-field="{{row[4]}}">Remove</button></a>
+
+        </div>
+                         <!-- End hidden field -->
+                          {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Is Circle Route?:</label>
+                <div class="col-md-4">
+                    {% if info_route.route_isCircle == 1 %}
+                        <input id="radio" type="radio"  name="typeRoute_radio2" value="1" checked="checked">Yes
+                        <input id="radio" type="radio"  name="typeRoute_radio2" value="0">No
+                   
+                    </div>
+                        {% for row in info_route2  %}
+                            {% if loop.last %}
+                                <div class="form-group">
+                                <label for="name" class="col-md-2 control-label"></label>
+                                <div id="hide-me2"  class="col-md-8"  style="display: block">
+                                    <textarea class="form-control"  placeholder="Add description from last point to the start point(Portugues)" rows="6"  name="input_descriptwopois_pt[]" datatype="text">{{ row[1].get("route_descript_pt") }}</textarea>
+                                    <textarea class="form-control"  placeholder="Add description from last point to the start point(English)" rows="6"  name="input_descriptwopois_en[]" datatype="text">{{ row[2].get("route_descript_en") }}</textarea>
+                                                         <label for="name" class="control-label">Is Sequence Valid?:</label>
+                                  {% if row[5] == 1 %}
+                                    <input id="radio" type="radio"  name="sequence_review_radio_circle" value="1" checked="true">Yes
+                                    <input id="radio" type="radio"  name="sequence_review_radio_circle" value="0">No
+                                  {% else %}
+                                    <input id="radio" type="radio"  name="sequence_review_radio_circle" value="1">Yes
+                                    <input id="radio" type="radio"  name="sequence_review_radio_circle" value="0" checked="true">No
+                                  {% endif %}
+                                </div>
+                                </div>
+
+                                {% endif %}
+                            {% endfor%}
+                        {% else %}
+                            <input id="radio" type="radio"  name="typeRoute_radio" value="1">Yes
+                            <input id="radio" type="radio"  name="typeRoute_radio" value="0" checked>No
+                    
+
+                </div>
+                
+                    <div class="form-group">
+                    <label for="name" class="col-md-2 control-label"></label>
+                    <div id="hide-me"  class="col-md-8"  style="display: none">
+                        <textarea class="form-control"  placeholder="Add description from last point to the start point(Portugues)" rows="6"  name="input_descriptwopois_pt[]" datatype="text"></textarea>
+                        <textarea class="form-control"  placeholder="Add description from last point to the start point(English)" rows="6"  name="input_descriptwopois_en[]" datatype="text"></textarea>
+                        <label for="name" class="control-label">Is Sequence Valid?:</label>
+                        <input id="radio" type="radio"  name="sequence_review_radio_circle" value="1" checked="true">Yes
+                        <input id="radio" type="radio"  name="sequence_review_radio_circle" value="0">No
+                    </div>
+                    </div>
+                        {% endif %}
+                 <div class="form-group">
+                <label for="name" class="col-md-2 control-label">Description</label>
+                <div class="col-md-8">
+                  <textarea class="form-control" placeholder="Description between these points(Portugues)" rows="8" id="input_routeDescript_pt" name="input_routeDescript_pt" datatype="text">{{ info_route.route_descrip_pt }}</textarea>
+                  <br><textarea class="form-control" placeholder="Description between these points(English)" rows="8" id="input_routeDescript_en" name="input_routeDescript_en" datatype="text">{{ info_route.route_descrip_en }}</textarea>
+
+                </div>
+                </div>
+                    <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Notes</label>
+                    <div class="col-md-6">
+                      <textarea class="form-control" placeholder="Notes" rows="4" id="input_route_notes" name="input_route_notes" datatype="text">{{info_route.route_notes}}</textarea>
+                    </div>
+                 </div>
+
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Route Image</label>
+                    <div class="col-md-4">
+                        <!--<input type="file"  id="img_file" name="img_file[]"> <!-- accept all images -->
+                        <input type="file" class="file-upload"  id="route_image" name="route_image[]" >
+                    </div>
+                    <div class="col-sm-4" id="imageContainer" ></div>
+                    <button type="button" class="addNewimgField_btn btn-primary">Add New Field</button>
+
+                </div>
+
+                <!-- ADD Dynamic Fields Here-->
+                 <div class="form-group new_img_field ">
+
+</div>
+                <div class="form-group">
+                        <label for="imagelist" class="col-md-2 control-label">Current images</label>
+
+                        {% for img in images %}
+                    <div class=" form-group">
+                        <div class="col-md-0">
+                            <input type="hidden" class="form-control" id="image_name" name="image_name[]" value="{{img[0]}}" placeholder="image ID">
+                            </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" id="image_name" name="image_name[]" value="{{img[1]}}" placeholder="image name" disabled>
+                            </div>
+                          <div class="col-sm-3" id="imageContainer">
+                              <img src="{{ url_for('static', filename='uploads/256px_' + img[1]) }}"
+                            class="img-thumbnail" alt="" width="150" height="100"/>
+
+                        
+                         </div> <!-- End form Group -->
+                                <a href="{{ url_for('images.delete_image_edit_route', img_id = img[0]) }}"><button type="button" class="Deleteimg_btn btn-primary">Delete image</button></a>
+  
+
+                        {% endfor %}
+                    </div>
+
+                 <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is the route complete?</label>
+                     {% if info_route.route_review == 0 %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio" value="1">Yes
+                           <input type="radio"  name="route_state_radio" value="0" checked>No
+                        </div>
+                     {% else %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio" value="1" checked>Yes
+                           <input type="radio"  name="route_state_radio" value="0">No
+                        </div>
+                     {% endif %}
+                    </div> 
+                 
+                    <div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Is the English verified?</label>
+                    {% if info_route.route_en_review == 0 %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio2" value="1">Yes
+                           <input type="radio"  name="route_state_radio2" value="0" checked >No
+                        </div>
+                    {% else %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="route_state_radio2" value="1" checked>Yes
+                           <input type="radio"  name="route_state_radio2" value="0">No
+                        </div>
+                    {% endif %}
+                    </div> 
+
+                <div class="col-md-offset-4 col-md-4">
+                  <button type="submit" class="btn btn-primary" id="btnSave">Update</button>
+                  <a href="{{ url_for('route.index') }}"><button type="button" class="btn btn-primary">Cancel</button></a>
+                 </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail %}
+    <script src="/static/js/jquery-1.12.4.js"></script>
+    <script src="/static/js/jquery.validate.js"></script>
+    <script src="/static/js/jquery.timepicker.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="/static/js/maskedinput.min.js"></script>
+
+    <!-- Our Script -->
+    <script src="/static/route_edit.js"></script> -->
+{% endblock %}

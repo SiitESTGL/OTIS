@@ -1,0 +1,140 @@
+{% extends 'admin/master.html' %}
+
+{% block head_content %}
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+
+    <style>
+        .my-error-class {
+            color:#FF0000;  /* red */
+            }
+            .my-valid-class {
+                color:#00CC00; /* green */
+            }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="container">
+        <div class="panel panel-primary col-md-10">
+            <div class="panel-heading">
+                <h3 class="panel-title">Edit Category</h3>
+            </div>
+
+             <div class="panel-body">
+                <form class="form-horizontal", id="formeditcategory"
+                      method="POST"
+                      action="{{ url_for('.edit_category', categ_id=category.categ_id) }}"
+                      role="form">
+
+                    <div class="form-group">
+                        <label for="category_pt" class="col-md-2 control-label">Name Language1</label>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" title="this field required" id="category_pt"
+                                    name="category_pt" value="{{ category.categ_name_pt }}">
+                            <input type="hidden"  id="category_pt_hidden" value="{{ category.categ_name_pt }}"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name" class="col-md-2 control-label">Name Language2</label>
+
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" title="this field required" id="category_en"
+                                   name="category_en" value="{{ category.categ_name_en }}">
+                            <input type="hidden"  id="category_en_hidden" value="{{ category.categ_name_en }}"/>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-offset-4 col-sm-8">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <a href="{{ url_for('.category_list') }}">
+                            <button type="button" class="btn btn-primary">Cancel</button>
+                        </a>
+                    </div>
+
+                </form>
+             </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block tail %}
+    <script src="/static/js/jquery-1.12.4.js"></script>
+    <script src="/static/js/jquery.validate.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.15.0/additional-methods.min.js"></script> <!-- Temporary-->
+    <script src="/static/js/jquery.timepicker.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#formeditcategory").validate(
+                    {
+                        onkeyup: false, //turn off auto validate whilst typing
+                        errorClass: "my-error-class",
+                        validClass: "my-valid-class",
+                        rules:
+                        {
+                            category_pt:
+                            {
+                                required: true,
+                                remote:
+                                {
+                                    param:
+                                    {
+                                        url:'/admin/category/check-unique-category-pt',
+                                        type: "POST",
+                                    },
+                                    depends: function (element)
+                                    {   // element argument represents  the userName field.
+                                        // Compare  User name in  form to hidden field
+                                        return !($(element).val().toLowerCase() === $("#category_pt_hidden").val().toLowerCase());
+                                    }
+
+                                } // close remote
+                            }, // close user
+                            category_en:
+                            {
+                                required: true,
+                                remote:
+                                {
+                                    param:
+                                    {
+                                        url:'/admin/category/check-unique-category-en',
+                                        type: "POST",
+                                    },
+                                    depends: function (element)
+                                    {   // element argument represents  the userName field.
+                                        // Compare  User name in  form to hidden field
+                                        return !($(element).val() === $("#category_en_hidden").val());
+                                    }
+                                } // close remote
+                            },
+                        }, // Close rules
+
+                        messages:
+                        {
+                           category_pt:
+                            {
+                                required: "this field required.",
+                                remote: $.validator.format("{0} is already existed.")
+                            },
+                            category_en:
+                            {
+                                required: "this field required.",
+                                remote: $.validator.format("{0} is already existed.")
+                            }
+                        }, // Close Messages
+
+                        submitHandler: function () {
+                            form.submit();
+                        }
+                    }); // close validate()
+        });
+    </script>
+
+{% endblock %}
