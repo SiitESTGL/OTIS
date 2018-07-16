@@ -1,0 +1,583 @@
+// Script creates dynamic fields for POIs open and close hours
+
+var max_fields = 15; // maximum input fields allowed
+var wrapper = $(".time_edit_field"); // fields wrapper
+var add_button = $(".addNewField_btn"); // reference button ID
+var count_field = 1; // initial text box count
+
+// Function add New Fields------------------------------------
+$(add_button).click(function (e) {
+    e.preventDefault();
+
+    if (count_field < max_fields) {
+        count_field++; // text box increment
+        $(wrapper).append('<div class="form-group">' +
+            '<label for="name" class="col-md-2 control-label"></label>' +
+            '<div class="col-md-2">' +
+            '<input type="text" class="form-control time_poi_open"  name="poi_open[]" placeholder="open Hour">' +
+            '</div><div class="col-md-2">' +
+            '<input type="text" class="form-control time_poi_close" name="poi_close[]"  placeholder="close Hour">' +
+            '</div><a href="#"<button type="button" class="remove_field btn-primary">Remove</button></a>' +
+            '</div>');
+    }
+
+
+//Dynamic fields,  Compute Duration of open time poi and close time poi
+    // --------------------------------------------------------------------------------------------------------------------
+    // for open time of  POI
+    $('.time_poi_open').timepicker({
+        'timeFormat': 'H:i',
+        'step': 30
+    });
+
+    // temporarily disable the close time of poi
+    $('.time_poi_close').prop('disabled', true);
+
+    // when a open time is chosen
+    $('.time_poi_open').on('changeTime', function () {
+        // enable the end time input
+        $('.time_poi_close').prop('disabled', false);
+
+
+        // enable the input as a timepicker
+        $('.time_poi_close').timepicker({
+            timeFormat: 'H:i',
+            minTime: $(this).val(),
+            showDuration: true,
+            step: 30
+        });
+    });
+
+
+});
+
+// Remove  text box
+$(wrapper).on("click", ".remove_field", function (e) {
+    e.preventDefault();
+    $(this).parent('div').remove();
+    count_field--;
+})
+
+
+
+// Script creates dynamic images fields
+var max_image_field = 15;
+var wrapper_image = $(".new_img_field");
+var add_img_field_btn = $(".addNewimgField_btn");
+var count_img_field = 1;
+
+// Function add New Image fields
+$(add_img_field_btn).click(function (e)
+{
+    e.preventDefault();
+
+    if (count_img_field < max_image_field) {
+        count_img_field++; // text box increment
+        $(wrapper_image).append('<div class="form-group">'+
+                        '<label for="name" class="col-md-2 control-label"></label>'+
+                        '<div class="col-md-4">'+
+                            '<input type="file" class="file-upload"  name="imagefile[]">'+
+                        '</div>'+
+                        '<a href="#<button type="button" class="removebtn_img_field btn-primary">Remove</button></a>'+
+                    '</div>');
+    }
+});
+
+// Remove  dynamic fields, when click on delete remove button
+$(wrapper_image).on("click", ".removebtn_img_field", function (e) {
+    e.preventDefault();
+    $(this).parent('div').remove();
+    count_img_field--;
+})
+
+var $submitBtn = $('.form-horizontal').find('input:submit'),
+  $photoInput = $('#imagefile'),
+  $imgContainer = $('#imageContainer');
+$('#imagefile').change(function() {
+  $photoInput.removeData('imageWidth');
+  $imgContainer.hide().empty();
+
+  var file = this.files[0];
+
+  if (file.type.match(/image\/.*/)) {
+    $submitBtn.attr('disabled', true);
+
+    var reader = new FileReader();
+
+    reader.onload = function() {
+      var $img = $('<img />').attr({ src: reader.result });
+
+      $img.on('load', function() {
+        $imgContainer.append($img).show();
+        var imageWidth = $img.width();
+        $photoInput.data('imageWidth', imageWidth);
+        if (imageWidth < 500) {
+          $imgContainer.hide();
+        } else {
+          $img.css({ width: '300px', height: '200px' });
+        }
+        $submitBtn.attr('disabled', false);
+
+        validator.element($photoInput);
+      });
+    }
+
+    reader.readAsDataURL(file);
+  } else {
+    validator.element($photoInput);
+  }
+});
+
+
+// Edit Default time
+// for open time of  POI
+$('#poi_open_edit').timepicker({
+    'timeFormat': 'H:i',
+    'step': 30
+});
+
+ // enable the input as a timepicker
+$('#poi_close_edit').timepicker({
+    timeFormat: 'H:i',
+    step: 30
+});
+
+// customize timepicker durations visit POI
+$("#visitduration").timepicker({
+    'timeFormat': 'H:i',
+    'step': 30
+});
+
+
+//-----------------------------------------------------------------------------------------------------------------+
+var responDista;
+$.validator.addMethod
+(
+    "checkPoiByDistances",
+    function (value, element)
+    {
+        $.ajax({
+            url: $("#editPOI").attr("action"),
+            data: "poi_long="+ value,
+            type: "POST",
+            dataType: "html",
+            success: function (data){
+                poi_distance = this.data;
+            }
+        });
+        return responDista;
+    },
+    "Poi Already  existed"
+);
+
+
+// validate phone number
+$.validator.addMethod('customphone', function (value, element) {
+    return this.optional(element) || /^(\+351-|\+351|0)?\d{9}$/.test(value);
+}, "Please enter a valid phone number");
+
+
+// Validate Image Size
+$.validator.addMethod // AddMethod(Function_name, function, message)
+(
+    "minImageSize",
+    function( value, element, minSize){
+        var result = $(element).data('imageSize')
+        return ((result[0] || 0 ) > minSize[0] && (result[1] || 0 ) > minSize[1]);
+    },
+    function(minSize, element){
+        var imagesize = $(element).data('imageSize');
+        return (imagesize)
+            ? ("Image Size must be greater than " + imagesize[0] + "x" +  imagesize[1] +  " pixels")
+            : "Selected file is not  an image.";
+    }
+);
+
+// Validate POI Time
+$.validator.addMethod(
+    "poitime",
+    function (value, element) {
+         return this.optional(element) || /^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/i.test(value);
+    },
+    "Please enter a valid time!");
+
+
+// ----------------------------------------------------------------------------------------------------------------+
+var validator = $("#editPOI").validate(
+{
+    debug:true,
+    onkeyup: false, //turn off auto validate whilst typing
+    errorClass: "my-error-class",
+    validClass: "my-valid-class",
+    rules:
+    {
+        poi_name:
+        {
+            required: true,
+            minlength: 5,
+            "remote":
+            {
+                url: '/admin/pois/check-poiname',
+                type: "POST",
+                data:
+                {
+                    poi_name: function (element)
+                    {
+                        if ($('#poi_name').val().toLowerCase() == $('#poiname_hidden').val().toLowerCase()){
+                            return false
+                        }else{
+                            return $('#poi_name').val();
+                        }
+                    } 
+                }
+            }
+
+        },
+        poi_address:
+        {
+            required: true
+        },
+        poi_phone:
+        {
+            required:true,
+            customphone:{
+                depends: function(element) {
+                  if ($("#poi_phone").val() == "None"){
+                      return false;
+                  } else {
+                      return true;
+                  }
+                }
+            }
+
+        },
+        poi_email:
+        {
+          email: {
+            depends: function(element) {
+              if ($("#poi_email").val() == "None"){
+                  return false;
+              } else {
+                  return true;
+              }
+            }
+          }
+
+        },
+        poi_website:
+        {
+          url: {
+            depends: function(element) {
+              if ($("#poi_website").val() == "None"){
+                  return false;
+              } else {
+                  return true;
+              }
+            }
+          }
+        },
+        lat_degree:
+        {
+            required:true,
+            digits: true,
+            range: [40, 42] // Degree > 40 and < 42
+
+        },
+
+        lat_minute:
+        {
+            required:true,
+            digits: true,
+            range: [0,59]
+        },
+        lat_second:
+        {
+            required:true,
+            digits: true,
+            range:[0,59]
+        },
+
+        long_degree:
+        {
+            required:true,
+            digits: true,
+            range: [6, 9] // Degree > 6 and < 9
+        },
+        long_minute:
+        {
+            required:true,
+            digits: true,
+            range: [0,59]
+        },
+        long_second:
+        {
+            required:true,
+            digits: true,
+            range:[0,59]
+        },
+
+        poi_descri_pt_short:
+        {
+            required: true,
+            minlength: {
+                param: 10,
+                depends: function(element) {
+                  if ($("#poi_descri_pt_short").val() == "None"){
+                      return false;
+                  } else {
+                      return true;
+                  }
+                }
+            }
+        },
+        
+        poi_descri_pt_long:
+        {
+            required: true,
+            minlength: {
+                param: 10,
+                depends: function(element) {
+                  if ($("#poi_descri_pt_long").val() == "None"){
+                      return false;
+                  } else {
+                      return true;
+                  }
+                }
+            }
+        },
+
+        poi_descri_en_short:
+        {
+            required: true,
+            minlength: {
+                param: 10,
+                depends: function(element) {
+                  if ($("#poi_descri_en_short").val() == "None"){
+                      return false;
+                  } else {
+                      return true;
+                  }
+                }
+            }
+        },
+
+        poi_descri_en_long:
+        {
+            required: true,
+            minlength: {
+                param: 10,
+                depends: function(element) {
+                  if ($("#poi_descri_en_long").val() == "None"){
+                      return false;
+                  } else {
+                      return true;
+                  }
+                }
+            }
+        },
+                
+        select_categ:
+        {
+            required: true
+        },
+        'poi_open[]':
+        {
+            required: true,
+            poitime:true
+        },
+        'poi_close[]':
+        {
+            required: true,
+            poitime: true
+        },
+        visitduration:
+        {
+            required: true,
+            poitime:true
+        },
+        'img_file[]':
+        {
+            minImageSize: [842, 402]
+        }
+    },
+
+
+    messages:
+    {
+        poi_name:
+        {
+            required: "*",
+            minlength: "Poi name must consist of at 5 characters",
+            remote: $.validator.format("{0} is already existed.")
+        },
+        poi_address:
+        {
+          required: "*"
+        },
+        poi_phone:
+        {
+            required:"*"
+
+        },
+        poi_email:
+        {
+          email: "Please enter a valid email address"
+        },
+        poi_website:
+        {
+          url:"Please enter a valid url (http://www.test.com)"
+        },
+
+        lat_degree:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range: "please, the value must between 40 and  42"
+
+        },
+
+        lat_minute:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range: "please, the value must between 0 and  59"
+        },
+        lat_second:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range:"please, the value must between 0 and  59"
+        },
+        long_degree:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range: "please, the value must between 6 and 9"
+
+        },
+        long_minute:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range: "please, the value must between 0 and  59"
+        },
+        long_second:{
+            required:"*",
+            digits: "Please enter  only digits",
+            range:"please, the value must between 0 and  59"
+        },
+        poi_descri_pt_short:{
+            required: "*",
+            minlength: "POI description must consist of at 10 characters"
+        },
+        
+        poi_descri_pt_long:{
+            required: "*",
+            minlength: "POI description must consist of at 10 characters"
+        },
+
+        poi_descri_en_short:{
+            required: "*",
+            minlength: "POI description must consist of at 10 characters"
+        },
+        
+        poi_descri_en_long:{
+            required: "*",
+            minlength: "POI description must consist of at 10 characters"
+        },
+
+        select_categ:{
+            required: "Select a category"
+        },
+        'poi_open[]':
+        {
+            required: "*"
+        },
+
+        'poi_close[]':{
+            required: "*"
+        },
+         visitduration:
+        {
+            required: "*"
+        }
+
+    },
+
+    submitHandler: function (form)
+    {
+        form.submit();
+        form.reset()
+    }
+});
+
+
+
+    var $submitBtn = $("#editPOI").find('button:submit');
+    var $imageFile = $('#imgfile');
+    var $imgContainer = $('#imageContainer');
+
+
+    var validator_image = $("#editPOI").validate(
+            {
+                rules:
+                {
+                    'img_file[]':
+                    {
+                        required: true,
+                        minImageSize: [842, 402]
+                    }
+                },
+                messages:
+                {
+                     'img_file[]':
+                    {
+                        required: "tengke upload imagem ida!"
+                    }
+                }
+            });
+
+        // function get Image Size
+        $($imageFile).change(function()
+        {
+              $imageFile.removeData('imageSize');
+              $imgContainer.hide().empty();
+
+              var file = this.files[0];
+
+              if (file.type.match(/image\/.*/))
+              {
+                $submitBtn.attr('disabled', true);
+
+                var reader = new FileReader();
+
+                reader.onload = function()
+                {
+                  var $img = $('<img />').attr({ src: reader.result });
+
+                  $img.on('load', function()
+                  {
+                    $imgContainer.append($img).show();
+                    var imageWidth = $img.width();
+                    var imageHeight = $img.height();
+                    var imageSize = [imageWidth, imageHeight];
+                    $imageFile.data('imageSize', imageSize);
+                    if ((imageSize[0] <= 842) || (imageSize[1] <= 402) )
+                        {
+                          $imgContainer.hide();
+                        }
+                    else
+                        {
+                          $img.css({ width: '80px', height: '40px' });
+                        }
+                    $submitBtn.attr('disabled', false);
+
+                    validator_image.element($imageFile);
+                  });
+                };
+                reader.readAsDataURL(file);
+              }
+              else
+              {
+                validator_image.element($imageFile);
+              }
+        });
+
+
+
+// End Form validation---------------------------------------------------------------------------------------------+
