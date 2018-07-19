@@ -2,13 +2,13 @@
 a project to help you find routes between you interest points
 
 ## What is?
-We have developed a tool to facilitate the discovery of the Douro region in Portugal. The average user will have access to touristic routes and interesting points to visit, with information about them. The project that we provide is cleaned from our database, you can only see the structure.
+We have developed a tool to facilitate travelling around the Douro region in Portugal and discovering its interest points. The average user will have access to tourism routes, to interesting points to visit , as well as to information about these places. The project that we present is not visible from our database, you can only see its structure.
 
 ## What can it do?
-You can adapt our project to the area or purpose that you want. It has the possibility to highlight points of interest and to draw paths between them, also can calculate distances in time and kilometers between the same points. We utilize our self-made API to enable you to integrate specific queries, like distance between points or the best route.
+You can adapt our project to the area or purpose that you want. It has the possibility to highlight points of interest and to draw paths between them, it can also calculate distances in time and kilometres between these points. We use our self-made API to enable you to integrate specific queries such as distance between points or the best route.
 
 ## How we did it?
-We based our work in a Ubuntu server, with Apache and Gunicorn. With these servers we were able to create a virtual environment which runs our Python/Flask, HTML and Javascript files. If you want to facilitate de servers process, you would install Anaconda and run everything using its environment, we use it to install the Redis server. We use the OSRM map of Portugal, you must install OSRM with your area of interest.
+We based our work in an Ubuntu server, with Apache and Gunicorn. With these servers we were able to create a virtual environment which runs our Python/Flask, HTML and JavaScript files. If you want to facilitate de servers work process, you may want to install Anaconda and run everything using its environment, we use it to install the Redis server. We use the OSRM map of Portugal. In case you also want to use this project you must install OSRM with your area of interest.
 
 ## Getting started
 ### Requirements
@@ -17,8 +17,7 @@ We based our work in a Ubuntu server, with Apache and Gunicorn. With these serve
 - Requiremnts.txt :arrow_right: ```pip install -r requirements.txt```
 
 ### Server Configurations
-Before you can start, you need to configure the servers for your project. Basically, you just need to define the paths of the files. 
-Celery Server:
+Before you start, you need to configure the servers for your project. Basically, you just need to define the paths of the files. Celery Server:
 ```
 sudo nano /etc/systemd/system/celery.service
 ```
