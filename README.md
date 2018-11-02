@@ -1,4 +1,6 @@
-# SIIT
+# OTIS
+Open Tourist Information System: a platform for tourism information management and outreach
+
 ## About
 SIIT is a generic Open Tourist Information System platform for tourism information management and outreach.
 
