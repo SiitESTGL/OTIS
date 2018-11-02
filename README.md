@@ -1,14 +1,16 @@
 # SIIT
-a project to help you find routes between you interest points
+## About
+SIIT is a generic Open Tourist Information System platform for tourism information management and outreach.
 
-## What is?
-We have developed a tool to facilitate travelling around the Douro region in Portugal and discovering its interest points. The average user will have access to tourism routes, to interesting points to visit , as well as to information about these places. The project that we present is not visible from our database, you can only see its structure.
+The system comprises an information management module and an extended set of web services, allowing the efficient management of information and its use by third parties such as:  web and mobile applications.
 
-## What can it do?
-You can adapt our project to the area or purpose that you want. It has the possibility to highlight points of interest and to draw paths between them, it can also calculate distances in time and kilometres between these points. We use our self-made API to enable you to integrate specific queries such as distance between points or the best route.
-
-## How we did it?
-We based our work in an Ubuntu server, with Apache and Gunicorn. With these servers we were able to create a virtual environment which runs our Python/Flask, HTML and JavaScript files. If you want to facilitate de servers work process, you may want to install Anaconda and run everything using its environment, we use it to install the Redis server. We use the OSRM map of Portugal. In case you also want to use this project you must install OSRM with your area of interest.
+## Features
+- Fully customizable geographic areas and categories
+- Specific module to administrate de system
+- API module for third-party use, in web or mobile applications
+- Modular architecture, allowing simple and easy developing
+- All the tools we use are open source
+- System performance fully tested on a real world implementation
 
 ## Getting started
 ### Requirements
