@@ -20,15 +20,17 @@ from app_core import db, app, celery
 from app_admin_function import *
 from models import *
 from my_function_osrm import *
+from My_functions import read_POIS_info3
 
 ALLOWED_EXTENSIONS = (['png', 'jpg', 'jpeg'])
 
-# function that checks if an uploaded image has the correct allowed extensions
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.lower().rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
     
                 
+#
 class AdminAuthenctication_admin(object):  # Define class Admin Authentication_admin
     # define method is_accessible, to verify user, if user is authenticated and is he/she admin, return true
     def is_accessible(self):
@@ -47,13 +49,32 @@ class AdminAuthenctication_superadmin(object):  # define class Admin Authenticat
 # hide in the page list Images, to update state show and hide values from the database
 # ---------------------------------------------------------------------------------------------------------------------+
 class MyAdminIndexView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, admin.AdminIndexView):
-    
-    @login_required  # Access this view, required login
-    @admin.expose('/')  # define URL
+    @login_required
+    @admin.expose('/', methods=["GET", "POST"])
     def index(self):
+        '''if not ((g.user.is_authenticated and g.user.is_admin()) or (
+                    g.user.is_authenticated and g.user.is_super_admin())):
+            return redirect(url_for('login', next=request.path))
+        else:'''
+        if request.method == "POST":
+            if "1" in request.form['check']:
+                img = Images.query.get_or_404(int(request.form['img_id']))
+                if img:
+                    img.img_check = int(request.form['check'])
+                    db.session.add(img)
+                    db.session.commit()
+            else:
+                img = Images.query.get_or_404(request.form['img_id'])
+                if img:
+                    img.img_check = int(request.form['check'])
+                    db.session.add(img)
+                    db.session.commit()
+        
 
         show_state = db.session.query(Images).filter(Images.img_check == 0)
+        # hide_state = db.session.query(Images).filter(Images.img_check == 1)
         self._template_args['img_show'] = show_state
+        # self._template_args['img_hide'] = hide_state
         return super(MyAdminIndexView, self).index()
 
 
@@ -62,24 +83,34 @@ class MyAdminIndexView(AdminAuthenctication_admin, AdminAuthenctication_superadm
 # method verifies data integrity such pois_name_unique()
 # ---------------------------------------------------------------------------------------------------------------------+
 class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, admin.BaseView):
+    """
+    Default view
+    """
 
-    @login_required  # Access this view, required login
+    @login_required     # Access this view, required login
     @admin.expose('/')  # define URL
-    def index(self):  # method index, default, return to method list poi.
+    def index(self):    # method index, default, return to method list poi.
         return redirect(url_for('.list_pois'))
+		
+    @login_required
+    @admin.expose('/pois_map', methods=['GET'])
+    def pois_map(self):
+        if request.method == 'GET':
+            categ_id = "all"
+            if request.args.get('category'):
+                categ_id = request.args.get('category')
+            category = Category.query.all()
+            concelho = Concelho.query.all()
+            poi_info3 = read_POIS_info3(categ_id)
+            
+        return self.render('admin/pois_map.html', poi_info=poi_info3, category=category, concelho=concelho)
 
-    # This view selects pois information and returns the template with the information
+    # This select pois information,
     @login_required
     @admin.expose('/view')
     def list_pois(self):
-        
-        #creates list of dict keys that will be sent to the template
         column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "last_update", "poi_review", "poi_en_review", "poi_future_review"]
-        
         info_poi = []
-        
-        #queries all the POIS in the database and then checks for their category name and adds all the data to their respective keys
-        #as defined above
         poi = POIS.query.all()
         for item in poi:
             category = Category.query.get(int(item.category_id))
@@ -95,6 +126,7 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                                               item.poi_en_review,
                                               item.poi_future_review])))
         return self.render('admin/Pois_admin.html', poi=info_poi)
+		
 
     # Create POIS --------------------------------------------------------
     @login_required
@@ -104,23 +136,34 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
          dms2decimal is  user's function  converts (degree, minute, second) to decimal number
         :return:
         """
+		
         if request.method == 'POST':
-            #starts by checking the forms relevant to data in the POIS table in the create HTML template and attributes it to variables
-            p_lat = dms2decimal(int(request.form['lat_degree']), int(request.form['lat_minute']),
-                                int(request.form['lat_second']), request.form['lat_direction'])
-            p_lon = dms2decimal(int(request.form['long_degree']), int(request.form['long_minute']),
-                                int(request.form['long_second']), request.form['long_direction'])
 
             myimage = request.files.getlist('imagefile[]')
             p_open = request.form.getlist('poi_open[]')
-            p_duration = "0:0"
-            if request.form['visitduration']:
-                p_duration = request.form['visitduration']
             p_close = request.form.getlist('poi_close[]')
+			
+            poi_have_schedule = 0
+            if request.form['poistate_radio_fut']:
+                poi_have_schedule = int(request.form['poistate_radio_fut'])
+            if poi_have_schedule == 0: 	#set default values if the POIS does not have time
+                p_open = ['0:0']
+                p_close = ['24:00']
+				
+            p_duration = 60								#visit duration default value(1 min)
+            time = 0									#variable that keeps the time the POIS is open
+            if request.form['visitduration']:			#verifies that the input has been filled
+                p_duration = convert_time_to_decimal(request.form['visitduration'])
+            for index, item in enumerate(p_open):		#calculate the time the POIS is open
+                time = convert_time_to_decimal(p_close[index]) - convert_time_to_decimal(item) + time
+            if p_duration > 14400:						#checks if the duration time is more than 4 hours
+                p_duration = 14400
+            if p_duration > time:						#checks if the duration time is more than the time the POIS is open
+                p_duration = time
 
             pois = POIS(poi_name=request.form['poi_name'],
-                        poi_lat=p_lat,
-                        poi_lon=p_lon,
+						poi_lat = float(request.form['lat_decimal']),
+						poi_lon = float(request.form['long_decimal']),
                         poi_descri_pt_short=request.form['poi_descri_pt_short'],
                         poi_descri_pt_long=request.form['poi_descri_pt_long'],
                         poi_descri_en_short=request.form['poi_descri_en_short'],
@@ -132,23 +175,29 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                         poi_notes=request.form['poi_notes'],
                         poi_review = int(request.form['poistate_radio']),
                         poi_address = request.form['poi_address'],
-                        poi_en_review = int(request.form['poistate_radio_en'])
+                        poi_en_review = int(request.form['poistate_radio_en']),
+                        poi_future_review = poi_have_schedule
                         )
 
-            
-            #processes the data for tables related to the POIS table, like contacts and schedules
             poi_contact = Contact(telephone=request.form['poi_phone'],
                                   email=request.form['poi_email'],
                                   website=request.form['poi_website'])
-            
-            pois.poi_contact.append(poi_contact)
 
             for index, item in enumerate(p_open):
+                item = convert_time_to_decimal(item)
+                p_open[index] = item
+                p_close[index] = convert_time_to_decimal(p_close[index])
+    
+                if p_close[index] <= item:							#check if the opening time is lower than the closing time
+                    p_close[index] = p_open[index] + 60				#if yes set the closing time 1 min after the opening
+                if index > 0 and item <= p_close[index-1]:			#check if the opening time is lower than the closing time of the previous schedule
+                    p_open[index] = p_close[index-1] + 60			#if yes set the opening time 1 min after the closing time of the previous schedule
+
                 poi_schedule = POIS_schedule(
-                    poi_open_h=convert_time_to_decimal(item),
-                    is_open_or_close=int(request.form['typeradio_poi']),
-                    poi_close_h=convert_time_to_decimal(p_close[index]),
-                    poi_vdura=convert_time_to_decimal(p_duration))
+                    poi_open_h=p_open[index],
+                    is_open_or_close=request.form['typeradio_poi'],
+                    poi_close_h=p_close[index],
+                    poi_vdura=p_duration)
                 pois.poi_schedule.append(poi_schedule)
 
             imgview = ImageAdminView
@@ -162,31 +211,23 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                     poi_img = Images(original_img=filename,
                                      img_descrip=pois.poi_name,
                                      copy_img="copy_" + filename,
-                                     img_check=True
+                                     img_check="True"
                                      )
                     pois.poi_image.append(poi_img)
 
                     imgfile.save(
                         os.path.join(app.config['UPLOAD_FOLDER'], filename))  # save original image file, uploads folder
                     imgview.image_cropper(os.path.join(app.config['UPLOAD_FOLDER'], filename)) # function to crop the images uploaded to the server
+                        
+            pois.poi_contact.append(poi_contact)
 
             db.session.add(pois)
             db.session.commit()
             flash('The POI %s has been created' % request.form['poi_name'], 'success')
-            
-            #after adding the POI, calculates the distance from this point to every other in the database using OSRM
-            
-            #-------
-            #WARNING: If adding POIs becomes too slow, comment out this section and use the update distance button in the distances 
-            #when you want to update the distances table
-            #-------
-            
             if pois.id:
                 DistanceView.create_distance(pois.id)  # Calculate POI distance and duration
             return redirect(url_for('.detailview_pois', poi_id=pois.id))
 
-        
-        #Handle GET method
         poi_category = Category.query.with_entities(Category.categ_id, Category.categ_name_pt)
         poi_concelho = Concelho.query.with_entities(Concelho.conc_id, Concelho.conc_name)
         return self.render('admin/pois_create.html', poi_cat=poi_category, poi_conc=poi_concelho)
@@ -286,13 +327,17 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
     @login_required
     @admin.expose('/edit-pois/<poi_id>', methods=['GET', 'POST'])
     def edit_pois(self, poi_id):
-        
-        # queries the database to retrieve the data relevant to the point about to be edited
+        """
+        This method allows us to update POI information
+        :param poi_id: provides id of POI, where we want to update
+        :return:
+        """
         poi_open_h = []
         poi_close_h = []
         poi_dura = []
         poi_img_id = []
         poi_img =[]
+        poi_open_or_close = 0
 
         categ = Category.query.all()
         conc = Concelho.query.all()
@@ -301,7 +346,46 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
             poi_open_h.append(item.poi_open_h)
             poi_close_h.append(item.poi_close_h)
             poi_dura.append(item.poi_vdura)
-            
+            poi_open_or_close = item.is_open_or_close
+        
+        # if de POI has no county, forces a default id
+        if p.concelho_id == None:
+            p.concelho_id = 20
+        
+        # if de POI has no category, forces a default id
+        if p.category_id == None:
+            p.category_id = 11
+        
+         # if de POI has no score, forces 1 as default id
+        if p.poi_score == 0:
+            p.poi_score = 1
+
+        if poi_open_or_close != 1:
+            poi_open_or_close = 0
+
+        #check for the max and min id in the database    
+        min_id = POIS.query.order_by(POIS.id.asc()).all()[0]
+        min_id = min_id.id		
+        max_id = POIS.query.order_by(POIS.id.desc()).all()[0]
+        max_id = max_id.id
+
+        id_list = []	
+        buttons = POIS.query.all()	
+        for but in buttons:
+            id_list.append(but.id)
+
+        # check for the next and previos id's    
+        for idx in range(len(id_list)):
+            if id_list[idx] == int(poi_id):
+                if id_list[idx] == min_id:
+                    bt_prev = id_list[idx]
+                else:
+                    bt_prev = id_list[idx-1]
+                if id_list[idx] == max_id:
+                    bt_next = id_list[idx]
+                else:
+                    bt_next = id_list[idx+1]
+
         for item2 in p.poi_image:
             poi_img_id.append(item2.img_id)
             poi_img.append(item2.original_img)
@@ -313,36 +397,35 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
 
         # Handle Post method
         if request.method == 'POST':
-            p_lat = dms2decimal(int(request.form['lat_degree']), int(request.form['lat_minute']),
-                                float(request.form['lat_second']), request.form['lat_direction'])
-
-            p_lon = dms2decimal(int(request.form['long_degree']), int(request.form['long_minute']),
-                                float(request.form['long_second']), request.form['long_direction'])
-
+		
             file_path = request.files.getlist('imagefile[]')
             p_open = request.form.getlist('poi_open[]')
             p_close = request.form.getlist('poi_close[]')
             p_duration = convert_duration_to_standard_time(request.form.getlist('poi_duration[]'))
             sch_id_list = [index.id for index in POIS_schedule.query.with_entities(POIS_schedule.id).filter(POIS_schedule.poi_id == p.id)]
-            p_duration = "0:0"
-            if request.form['visitduration']:
-                p_duration = request.form['visitduration']
+
+            poi_have_schedule = 0
+            if request.form['poistate_radio_fut']:
+                poi_have_schedule = int(request.form['poistate_radio_fut'])
+            if poi_have_schedule == 0: 	#set default values if the POIS does not have time
+                p_open = ['0:0']
+                p_close = ['24:00']
+				
+            p_duration = 60								#visit duration default value(1 min)
+            time = 0									#variable that keeps the time the POIS is open
+            if request.form['visitduration']:			#verifies that the input has been filled
+                p_duration = convert_time_to_decimal(request.form['visitduration'])
+            for index, item in enumerate(p_open):		#calculate the time the POIS is open
+                time = convert_time_to_decimal(p_close[index]) - convert_time_to_decimal(item) + time
+            if p_duration > 14400:						#checks if the duration time is more than 4 hours
+                p_duration = 14400
+            if p_duration > time:						#checks if the duration time is more than the time the POIS is open
+                p_duration = time
 
             if p:  # is True or exist object
-                
-                #-------
-                #WARNING: If editing POIs becomes too slow, comment out this section and use the update distance button in the distances 
-                #when you want to update the distances table
-                #-------
-                
-                
-                if float(p.poi_lat) != float(p_lat) or float(p.poi_lon) != float(p_lon):
-                    p.poi_lat = p_lat
-                    p.poi_lon = p_lon
-                    DistanceView.update_distance(poi_id, p_lat, p_lon) # computes  POI distances and duration            
                 p.poi_name = request.form['poi_name']
-                p.poi_lat = p_lat
-                p.poi_lon = p_lon
+                p.poi_lat = float(request.form['lat_decimal'])
+                p.poi_lon = float(request.form['long_decimal'])
                 p.poi_descri_en_short = request.form['poi_descri_en_short']
                 p.poi_descri_en_long=request.form['poi_descri_en_long']
                 p.poi_descri_pt_short = request.form['poi_descri_pt_short']
@@ -354,24 +437,25 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                 p.concelho_id = int(request.form['select_conc'])
                 p.poi_review = int(request.form['poistate_radio'])
                 p.poi_en_review = int(request.form['poistate_radio_en'])
-                p.poi_future_review = int(request.form['poistate_radio_fut'])
+                p.poi_future_review = poi_have_schedule
                 p.poi_address = request.form['poi_address']
                 
-                #if the length of the current form is identical to the original query it updates, else it deletes the current schedules and adds the data from the form
                 if len(p_open)==len(sch_id_list):
                     for index, item in enumerate(p.poi_schedule):  # Update data in table Schedule
                         schedule = POIS_schedule.query.get_or_404(item.id)
                         if schedule:
                             schedule.poi_open_h = convert_time_to_decimal(p_open[index])
                             schedule.poi_close_h = convert_time_to_decimal(p_close[index])
-                            schedule.poi_vdura = convert_time_to_decimal(p_duration)
+                            schedule.poi_vdura = p_duration
+                            schedule.is_open_or_close = int(request.form['typeradio_poi'])
                 else:
                     schedelete = POIS_schedule.query.with_entities(POIS_schedule.id).filter(POIS_schedule.poi_id == p.id).delete()
                     for index, item in enumerate(p_open):
                         poi_schedule = POIS_schedule(
                             poi_open_h=convert_time_to_decimal(item),
                             poi_close_h=convert_time_to_decimal(p_close[index]),
-                            poi_vdura=convert_time_to_decimal(p_duration))
+                            poi_vdura=p_duration,
+                            is_open_or_close=int(request.form['typeradio_poi']))
                         p.poi_schedule.append(poi_schedule)
                     
                 for item in p.poi_contact:  # Update data in table Contact
@@ -397,7 +481,7 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                         poi_img = Images(original_img=filename,
                                      img_descrip=p.poi_name,
                                      copy_img="copy_" + filename,
-                                     img_check=True
+                                     img_check="True"
                                      )
                         p.poi_image.append(poi_img)
 
@@ -406,7 +490,6 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
                         imgview.image_cropper(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 db.session.commit()
 
-                #queries the routes that contain the POI and updates its distance and duration
                 routelist = list(db.session.query(SequencePois.route_id).distinct().filter(SequencePois.pois_list == p.id))
                 for item, in routelist:
                     poi_list = []
@@ -424,13 +507,12 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
             
             db.session.commit()
             flash('The POI %s has been Updated' % request.form['poi_name'], 'success')
-            # DistanceView.update_distance(poi_id) # computes  POI distances and duration
             return redirect(url_for('.detailview_pois', poi_id=p.id))
 
         # Handle Got method
         else:
             default_open_close_hour = zip([poi_open_h[0]], [poi_close_h[0]], [poi_dura[0]])
-            poi_open_h.pop(0)  # remove first item from poi_open_hour,  cause we save on default_open_hour
+            poi_open_h.pop(0)   # remove first item from poi_open_hour,  cause we save on default_open_hour
             poi_close_h.pop(0)  # remove also first item from poi_close_hour
             poi_dura.pop(0)
             open_close_hour = zip(poi_open_h, poi_close_h, poi_dura)
@@ -439,7 +521,8 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
             
             return self.render('admin/pois_edit.html', poi=p, categ=categ, conc=conc,
                                default_open_close_hour=default_open_close_hour,
-                               poi_open_close_h=open_close_hour, duration_visit=duration_visit, images=images)
+                               poi_open_close_h=open_close_hour, duration_visit=duration_visit, images=images, poi_open_or_close=poi_open_or_close,
+                               max_id=max_id, min_id=min_id, bt_next=bt_next, bt_prev=bt_prev)
         
     # -----------------------------------------------------------------------------------------------------------------+
     # Used to delete a specific point and all it's data
@@ -447,7 +530,11 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
     @login_required
     @admin.expose('/delete-pois/<poi_id>')
     def delete_pois(self, poi_id):
-
+        """
+            Method remove POIs
+        :param poi_id:  id of poi, we want to remove it
+        :return:
+        """
         poi = POIS.query.get_or_404(poi_id)
         if poi:
             db.session.delete(poi)
@@ -492,20 +579,65 @@ class PoisAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin,
     @login_required
     @admin.expose('/detail-view/<poi_id>')
     def detailview_pois(self, poi_id):
-
+        """
+         shows detail information about specific POI
+        :param poi_id:
+        :return:
+        """
         poi = POIS.query.get_or_404(poi_id)
         contact = db.session.query(Contact).filter(Contact.poi_id == poi.id).first()
         img = db.session.query(Images.original_img).filter(Images.poi_id == poi.id).first()        
         last_update = ""
-        category = Category.query.get(poi.category_id)
-        if category:
+		
+        min_id = POIS.query.order_by(POIS.id.asc()).all()[0]
+        min_id = min_id.id		
+        max_id = POIS.query.order_by(POIS.id.desc()).all()[0]
+        max_id = max_id.id
+
+        id_list = []	
+        buttons = POIS.query.all()		
+        for but in buttons:
+            id_list.append(but.id)
+
+        for idx in range(len(id_list)):
+            if id_list[idx] == int(poi_id):
+                if id_list[idx] == min_id:
+                    bt_prev = id_list[idx]
+                else:
+                    bt_prev = id_list[idx-1]
+                if id_list[idx] == max_id:
+                    bt_next = id_list[idx]
+                else:
+                    bt_next = id_list[idx+1]
+		
+        poi_open_or_close = 0
+        for item in poi.poi_schedule:
+            poi_open_or_close = item.is_open_or_close
+            poi_vdura = item.poi_vdura
+        if poi_open_or_close != 1:
+           poi_open_or_close = 0
+
+        if poi.concelho_id:
+            county = Concelho.query.get(poi.concelho_id)
+            countyname = county.conc_name
+        else:
+            county_id = 20
+            county = Concelho.query.get(county_id)
+            countyname = county.conc_name 
+		
+        if poi.category_id:
+            category = Category.query.get(poi.category_id)
             categoryname = category.categ_name_pt
         else:
-            categoryname = ""
+            category_id = 20
+            category = Category.query.get(category_id)
+            categoryname = category.categ_name_pt
+			
         if poi.date_poi_updated:
             last_update = poi.date_poi_updated.strftime("%Y-%m-%d  %H:%M")
         return self.render('admin/pois_detailview.html', poi=poi, last_update=last_update,
-                           categoryname=categoryname, contact=contact, img=img
+                           categoryname=categoryname, contact=contact, img=img, poi_open_or_close=poi_open_or_close, countyname=countyname,
+                           poi_vdura=poi_vdura, max_id=max_id, min_id=min_id, bt_next=bt_next, bt_prev=bt_prev
                           )
 
 
@@ -556,12 +688,12 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
             image = Images(img_descrip=request.form['img_descrip'],
                            original_img=filename,
                            copy_img="copy_" + filename,
-                           img_check=True)
+                           img_check="True")
             db.session.add(image)
             db.session.commit()
 
             i_path.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))  # save original image file, uploads folder
-            # call method resize_crop_image
+
             ImageAdminView.image_cropper(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash('The Image %s was created successfully' % filename)
             return redirect(url_for('.image_index'))
@@ -571,7 +703,10 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
     @login_required
     @admin.expose('/delete-image/<img_id>')
     def delete_image(self, img_id):
-
+        """
+        :param img_id: id of image which will remove , include its attributes
+        :return:
+        """
         img = Images.query.get_or_404(img_id)
 
         db.session.delete(img)
@@ -587,7 +722,10 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
     @login_required
     @admin.expose('/delete-image-edit/<img_id>')
     def delete_image_edit(self, img_id):
-
+        """
+        :param img_id: id of image which will remove , include its attributes
+        :return:
+        """
         img = Images.query.get_or_404(img_id)
         poi_id= img.poi_id
         
@@ -600,7 +738,10 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
     @login_required    
     @admin.expose('/delete-image-edit-route/<img_id>')
     def delete_image_edit_route(self, img_id):
-
+        """
+        :param img_id: id of image which will remove , include its attributes
+        :return:
+        """
         img = Images.query.get_or_404(img_id)
         route_id= img.route_id
         
@@ -613,7 +754,10 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
     @login_required
     @admin.expose('/edit-image/<img_id>', methods=["GET", "POST"])
     def edit_image(self, img_id):
-
+        """
+        :param img_id:
+        :return:
+        """
         width, height = (843, 403)  # This default image size for our App, we can change this values.
         size = (width, height)
         filename = ""
@@ -642,6 +786,7 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
                 i.img_descrip = request.form["img_descrip"]
                 i.original_img = filename
                 i.copy_img = "copy_" + filename
+                # db.session.add(i)
                 db.session.commit()
 
                 i_path.save(
@@ -658,7 +803,10 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
     @login_required
     @admin.expose('/crop-image/<img_id>', methods=["GET", "POST"])
     def crop_image(self, img_id):
-
+        """
+        :param img_id:
+        :return:
+        """
         width, height = (843, 403)  # This default image size for our App, we can change this values.
         size = (width, height)
         filename = ""
@@ -691,7 +839,7 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
                 return redirect(url_for('.image'))
         else:
             return self.render("admin/image_crop.html", image=i)
-    
+   
     @login_required
     @admin.expose('/get-imagesize', methods=['GET', 'POST'])
     def get_imagsize(self):
@@ -706,6 +854,7 @@ class ImageAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin
             crop_type = 'bottom'
             filename = secure_filename(i_path.filename)
             my_path = (os.path.join(app.config['UPLOAD_FOLDER'], "copy " + filename))
+
         
     #----------------------------------------------------------------------------------------------------------------+   
     #Function that receives an image from a path and crops it into several levels of lower resolution based on its resolution
@@ -867,26 +1016,22 @@ class DistanceView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, 
         db.session.commit()
 
     @staticmethod
-    def update_distance(poi_id, lat, lon):
+    def update_distance(poi_id):
 
         new_pois_id = [index.id for index in POIS.query.with_entities(POIS.id)]  # Assign all POIs ID to new list
 
         poi_info = db.session.query(POIS_distances).filter(POIS_distances.start_poi_id == poi_id).all()
         for i, keys in enumerate(poi_info):
-            destin = POIS.query.get_or_404(keys.end_poi_id)
-            distance, duration = get_trip_distance_duration([lon, lat],
+            poi_distance = POIS_distances.query.get(keys.id)
+            if poi_distance:
+                poi_distance.start_poi_id = poi_id
+                poi_distance.end_poi_id = new_pois_id[i]
+                distance, duration = get_trip_distance_duration([origin.poi_lon, origin.poi_lat],
                                                            [destin.poi_lon, destin.poi_lat])
-            keys.trip_duration = duration
-            keys.trip_distance = distance
-        
-        poi_info2 = db.session.query(POIS_distances).filter(POIS_distances.end_poi_id == poi_id).all()
-        for i, keys in enumerate(poi_info2):
-            origin = POIS.query.get_or_404(keys.start_poi_id)
-            distance, duration = get_trip_distance_duration([origin.poi_lon, origin.poi_lat],
-                                                           [lon, lat])
-            keys.trip_duration = duration
-            keys.trip_distance = distance
+                poi_distance.trip_duration = 0.0
+                poi_distance.trip_distance = 0.0
         db.session.commit()
+
     #View to check up on the progress of a specific task based on it's ID, used to see the progress on the distance update    
     @login_required
     @admin.expose('/update-status/<task_id>')
@@ -942,6 +1087,8 @@ class SheduleView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, a
     @login_required
     @admin.expose('/view')
     def list_schedule(self):
+        '''poi_info = db.session.query(POIS, POIS_schedule.poi_id, POIS_schedule.poi_vdura).distinct().filter(
+            POIS.id == POIS_schedule.poi_id).all()'''
         poi_info = db.session.query(POIS, POIS_schedule.poi_id).filter(
             POIS.id == POIS_schedule.poi_id).all()
 
@@ -955,7 +1102,7 @@ class SheduleView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, a
                 "poi_open_hour": [i.poi_open_h for i in schedule],
                 "poi_close_h": [i.poi_close_h for i in schedule]
             })
-
+        # print(json.dumps(schedule_info, sort_keys=True, indent=4))
         return self.render('admin/schedule.html', schedule_info=schedule_info)
 
 
@@ -1074,6 +1221,11 @@ class UserView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, admi
 
     @staticmethod
     def exist_username(input_username):
+        """
+        check user name in database, if exist return true
+        :param input_username: user name we want to search in data base
+        :return: boolean true if exist, else false
+        """
         u = db.session.query(User.user_id).filter(func.lower(User.username) == func.lower(input_username))
         result = db.session.query(u.exists()).scalar()  # return true if user name exist
         return result
@@ -1093,14 +1245,16 @@ class UserView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, admi
         u_email = db.session.query(User.user_id).filter(func.lower(User.email) == func.lower(input_email))
         return db.session.query(u_email.exists()).scalar()  # return true, if email exist
 
-
 # =====================================================================================================================#
 # Create, edit, delete POI Category
 class CategoryView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, admin.BaseView):
     @login_required
     @admin.expose('/')
     def category_index(self):
-
+        """
+        Default index view
+        :return: redirect to category list
+        """
         return redirect(url_for('.category_list'))
 
     @login_required
@@ -1185,7 +1339,10 @@ class ConcelhoView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, 
     @login_required
     @admin.expose('/')
     def concelho_index(self):
-
+        """
+        Default index view
+        :return: redirect to category list
+        """
         return redirect(url_for('.concelho_list'))
 
     @login_required
@@ -1227,7 +1384,7 @@ class ConcelhoView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, 
         if concelho:
             db.session.delete(concelho)
             db.session.commit()
-        flash('The county %s has beeen deleted successfully' % concelho.conc_name)
+        flash('The concelho %s has beeen deleted successfully' % concelho.conc_name)
         return redirect(url_for('.concelho_list'))
 
     # Check POI concelho name must be unique
@@ -1254,7 +1411,10 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
     @login_required
     @admin.expose('/')
     def index(self):
-
+        """
+            Default index view
+        :return: redirect to route_list.html
+        """
         return redirect(url_for('.route'))
 
     @login_required
@@ -1370,7 +1530,7 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
 
         info2 = list(zip(start_poi, descript_en, end_poi, position, descript_pt))
         print (json.dumps(info, sort_keys=True, indent=4))
-        return self.render("admin/routemap.html", info=json.dumps(info), route=r, info2=info2, drive = app.config['JS_OSRM_DRIVE_ADDRESS'], walk = app.config['JS_OSRM_WALK_ADDRESS'], bike = app.config['JS_OSRM_BIKE_ADDRESS'])
+        return self.render("admin/routemap.html", info=json.dumps(info), route=r, info2=info2, drive = app.config['JS_OSRM_DRIVE_ADDRESS'], walk = app.config['JS_OSRM_WALK_ADDRESS'], bike = app.config['JS_OSRM_BIKE_ADDRESS'] )
 
     @login_required
     @admin.expose('/create-route', methods=['GET', 'POST'])
@@ -1448,19 +1608,18 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
             db.session.refresh(poi)
             end_pois[len(start_pois)-1] = int(poi.id) 
 
-        if int(request.form['typeRoute_radio']):  # if route is circle
+        if int(request.form['typeRoute_radio']):            # if route is circle
             start_pois.append(end_pois[len(end_pois) - 1])  # adding last item of list end_pois to the list start_pois
-            end_pois.append(start_pois[0])  # adding first item of start_pois to the end_pois
+            end_pois.append(start_pois[0])                  # adding first item of start_pois to the end_pois
         
-        poi_list = list(start_pois)  # holds all input pois list
-        if not int(request.form['typeRoute_radio']):  # route is not circle
+        poi_list = list(start_pois)                       # holds all input pois list
+        if not int(request.form['typeRoute_radio']):      # route is not circle
             poi_list.append(end_pois[len(end_pois) - 1])  # push last item of end_pois list to poi_list
-            start_pois.append(start_pois[0])  # add default value
-            end_pois.append(start_pois[0])  # add default value
+            start_pois.append(start_pois[0])              # add default value
+            end_pois.append(start_pois[0])                # add default value
             descript_pt.append("default")  
             descript_en.append("default")
-          
-                
+               
         poi_list2 = list(poi_list)
         if int(request.form['typeRoute_radio']):
             poi_list2.append(start_pois[0]) # add first start point and last end point to end of poi_list for correct distance and duration if route is circular
@@ -1485,16 +1644,16 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
                 route_img = Images(original_img=filename,
                                  img_descrip=routes.route_name,
                                  copy_img="copy_" + filename,
-                                 img_check=True
+                                 img_check="True"
                                 )
                 routes.route_image.append(route_img)
 
                 imgfile.save(
                     os.path.join(app.config['UPLOAD_FOLDER'], filename))  # save original image file, uploads folder
-                #imgview.resize_crop_img(imgfile, path_for_new_img, size, 'bottom')
                 imgview.image_cropper(os.path.join(app.config['UPLOAD_FOLDER'], filename)) # function to crop the images uploaded to the server
 
         for index, item in enumerate(poi_list):
+
             seq_pois = SequencePois(pois_list=item,
                                     start_poi_id=start_pois[index],
                                     end_poi_id=end_pois[index],
@@ -1520,24 +1679,24 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
         route = Route.query.get_or_404(route_id)  # get route from id, can be edited
         
         start_keys = ["start_poi_id", "start_poi_name"]  # start poi label or keys (dict)
-        end_keys = ["end_poi_id", "end_poi_name"]  # end poi label
+        end_keys = ["end_poi_id", "end_poi_name"]        # end poi label
 
         default_start_poi = []  # default start poi
-        default_end_poi = []  # default end poi
+        default_end_poi = []    # default end poi
         default_route_descript_pt = []  # default trip descript portugues
         default_route_descript_en = []  # default trip descript english
         default_route_count = [1]
         default_route_review = [] # default route review
 
-        start_poi_info = []  # start_poi id and name will be show in dynamic fields
-        end_poi_info = []  # end poi id and name will be show in dynamic fields
+        start_poi_info = []     # start_poi id and name will be show in dynamic fields
+        end_poi_info = []       # end poi id and name will be show in dynamic fields
         route_descript_pt = []  # route description version Pt. will be show in dynamic fields
         route_descript_en = []  # route description version En. will be show in dynamic fields
-        route_count =[] # counts the route's position on the list
-        route_review =[] #route review for dynamic fields
-        rcount = 1 # starting value for counting variable
-        route_img_id = [] # list of route image ids
-        route_img =[] # list of route images
+        route_count =[]         # counts the route's position on the list
+        route_review =[]        #route review for dynamic fields
+        rcount = 1              # starting value for counting variable
+        route_img_id = []       # list of route image ids
+        route_img =[]           # list of route images
         
         for item2 in route.route_image:
             route_img_id.append(item2.img_id)
@@ -1599,9 +1758,9 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
 
         # Handle POST Method
         if request.method == 'POST':
-            start_pois = request.form.getlist('start_pois_value[]')  # sets start pois list
+            start_pois = request.form.getlist('start_pois_value[]')     # sets start pois list
             start_poi_names = request.form.getlist('start_pois_label')  # sets start poi name list
-            end_pois = request.form.getlist('end_pois_value[]')  # sets end pois list
+            end_pois = request.form.getlist('end_pois_value[]')         # sets end pois list
             end_poi_names = request.form.getlist('end_pois_label')
             descript_pt = request.form.getlist('input_descriptwopois_pt[]')
             descript_en = request.form.getlist('input_descriptwopois_en[]')
@@ -1685,29 +1844,29 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
                 end_pois[len(start_pois)-1] = int(poi.id) 
             
             if not route.route_isCircle:
-                if int(request.form['typeRoute_radio']):  # if route is circle
+                if int(request.form['typeRoute_radio']):            # if route is circle
                     start_pois.append(end_pois[len(end_pois) - 1])  # adding last item from list end_pois to the list start_pois
-                    end_pois.append(start_pois[0])  # adding first item of start_pois to the end_pois
+                    end_pois.append(start_pois[0])                  # adding first item of start_pois to the end_pois
 
-                poi_list = list(start_pois)  # holds all input pois list
-                if not int(request.form['typeRoute_radio']):  # route is not circle
+                poi_list = list(start_pois)                       # holds all input pois list
+                if not int(request.form['typeRoute_radio']):      # route is not circle
                     poi_list.append(end_pois[len(end_pois) - 1])  # push last item of end_pois list to poi_list
-                    start_pois.append(start_pois[0])  # add default value is first item from start poi
-                    end_pois.append(start_pois[0])  # add default value is first item from start poi
-                    descript_pt.append("default")  #
+                    start_pois.append(start_pois[0])              # add default value is first item from start poi
+                    end_pois.append(start_pois[0])                # add default value is first item from start poi
+                    descript_pt.append("default")
                     descript_en.append("default")
 
             else:
-                if int(request.form['typeRoute_radio2']):  # if route is circle
+                if int(request.form['typeRoute_radio2']):           # if route is circle
                     start_pois.append(end_pois[len(end_pois) - 1])  # adding last item from list end_pois to the list start_pois
-                    end_pois.append(start_pois[0])  # adding first item of start_pois to the end_pois
+                    end_pois.append(start_pois[0])                  # adding first item of start_pois to the end_pois
 
-                poi_list = list(start_pois)  # holds all input pois list
-                if not int(request.form['typeRoute_radio2']):  # route is not circle
+                poi_list = list(start_pois)                       # holds all input pois list
+                if not int(request.form['typeRoute_radio2']):     # route is not circle
                     poi_list.append(end_pois[len(end_pois) - 1])  # push last item of end_pois list to poi_list
-                    start_pois.append(start_pois[0])  # add default value is first item from start poi
-                    end_pois.append(start_pois[0])  # add default value is first item from start poi
-                    descript_pt.append("default")  #
+                    start_pois.append(start_pois[0])              # add default value is first item from start poi
+                    end_pois.append(start_pois[0])                # add default value is first item from start poi
+                    descript_pt.append("default")  
                     descript_en.append("default")
             if route:
                 route.route_name = request.form['input_routename']
@@ -1716,6 +1875,7 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
                     route.route_isCircle = int(request.form['typeRoute_radio'])
                 else:
                     route.route_isCircle = int(request.form['typeRoute_radio2'])
+
                 route.route_descrip_pt = request.form['input_routeDescript_pt']
                 route.route_descrip_en = request.form['input_routeDescript_en']
                 poi_list2 = list(poi_list)
@@ -1741,7 +1901,7 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
                         route_img = Images(original_img=filename,
                                            img_descrip=route.route_name,
                                            copy_img="copy_" + filename,
-                                           img_check=True
+                                           img_check="True"
                                           )
                         route.route_image.append(route_img)
 
@@ -1802,7 +1962,11 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
     @login_required
     @admin.expose('/delete-route<route_id>')
     def delete_route(self, route_id):
-
+        """
+         Remove route from database, then redirect to route list
+        :param route_id: provides route id, want to remote
+        :return:
+        """
         route = Route.query.get_or_404(route_id)
         db.session.delete(route)
         db.session.commit()
@@ -1813,7 +1977,10 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
     @login_required
     @admin.expose('/check-routename', methods=['GET', 'POST'])
     def check_routename(self):
-
+        """
+            verify route' name if already existed return false, else return false.
+        :return: boolean
+        """
         state = "true"
         if request.method == 'POST':
             r_name = request.form['input_routename']
@@ -1825,7 +1992,10 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
     @login_required
     @admin.expose('/check-routename-edit', methods=['GET', 'POST'])
     def check_routename_edit(self):
-
+        """
+            verify route' name if already existed return false, else return false.
+        :return: boolean
+        """
         state = "true"
         if request.method == 'POST':
             r_name = request.form['input_routename']
@@ -1845,7 +2015,10 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
 
     @admin.expose('/autocomplete', methods=["GET", "POST"])
     def auto_complete(self):
-
+        """
+            Auto-complete routes-forms
+        :return: data type json consist of all pois name
+        """
         column = ["value", "label"]
         result = []
         if request.method == "POST":
@@ -1858,6 +2031,42 @@ class RouteView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, adm
                     result.append(dict(zip(column, [i.id, i.poi_name])))
         print (json.dumps(result))
         return jsonify(result)
+
+
+    #Sphinx Documentation
+class SphinxAdminView(AdminAuthenctication_admin, AdminAuthenctication_superadmin, admin.BaseView):
+    @login_required
+    @admin.expose('/')  # default view
+    def sphinx_index(self):
+        return redirect(url_for('.documentation'))
+    
+# ---------------------------------------------------------------------------------------------------------------------+
+# The following views get the template and static files from the Sphinx directory, as defined in DouroRec_App, and presents them
+# ---------------------------------------------------------------------------------------------------------------------+
+    @login_required
+    @admin.expose('/<path:filename>')
+    def documentation(self, filename):
+        return send_from_directory(
+            app.config['SPHINX_FOLDER'],
+            filename
+        )
+
+    @login_required
+    @admin.expose('/usage/<path:filename>')
+    def documentation_usage(filename):
+        return send_from_directory(
+            app.config['SPHINX_FOLDER']+'/usage',
+            filename
+        )
+
+    @login_required
+    @admin.expose('/_static/<path:filename>')
+    def sphinx_static(self, filename):
+        return send_from_directory(
+            app.config['SPHINX_FOLDER']+'/_static',
+            filename
+        )
+    
     
 class LogView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, admin.BaseView):
     # Default index view
@@ -1879,5 +2088,18 @@ class LogView(AdminAuthenctication_superadmin, AdminAuthenctication_admin, admin
                                               item.log_text,
                                               item.log_date,
                                               item.log_ip])))
-        # print(json.dumps(schedule_info, sort_keys=True, indent=4))
-        return self.render('admin/logs.html', log_info=log_info)   
+        return self.render('admin/logs.html', log_info=log_info)
+    
+def update_poi_category():
+    poi = POIS.query.all()
+    category = Category.query.all()
+    for item in poi:
+        p = POIS.query.get_or_404(item.id)
+        if p:
+            for cat in category:
+                if cat.categ_name_pt.lower() == p.POI_categ.lower():
+                    p.category_id = cat.categ_id
+                    db.session.commit()
+        else:
+            print("not found poi id")
+    print("Updated success!")

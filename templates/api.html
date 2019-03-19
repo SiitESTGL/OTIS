@@ -31,7 +31,6 @@
                 <hr>
             </div>
         </div>
-        <!-- /.row -->
 
         <!-- Content Row -->
         <div class="row">
@@ -70,8 +69,6 @@
                              <br>
 <strong>Limite de utilização:</strong> Cada chave tem um limite de utilização de 100 chamadas por minuto. Caso este limite seja excedido irá devolver uma mensagem de erro com o status_code "<strong>429</strong>".
                              <br>
-                             
-                             
 
                          </div>
                     </div>
@@ -84,14 +81,35 @@
                         </div>
                         <div id="collapseOne" class="panel-collapse collapse">
                             <div class="panel-body">
-                               Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto geográfico definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. <br>
+                               Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto geográfico definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. Pode-se definir a ordenação dos resultados por classifcação ou distância e definir o número de pontos retornados pela função.<br>
 <br>
-<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>num_poi</strong>=<em>&lt;número de pontos&gt;</em>&amp;<strong>order</strong>=<em>&lt;ordenação&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
 <br>
 Parâmetros de entrada:<br>
 <ul>                                
 •	<strong>lat</strong>: latitude do ponto que o utilizador quer;<br>
 •	<strong>lon</strong>: longitude do ponto que o utilizador quer;<br>
+•	<strong>num_poi</strong>: número máxido de pontos retornados pela chamada;<br>
+•	<strong>order</strong>: ordenação dos pontos retornados;<br>
+    <strong>Possibilidades de ordenação:</strong>
+        <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Input</th>
+        <th>Descrição</th>
+      </tr>
+      <tr>
+        <td>'score'</td>
+        <td>Ordena os resultados pela classificação dos pontos, das classificações mais elevadas para as menos.</td>
+      </tr>
+      <tr>
+        <td>'dist'</td>
+        <td>Ordenação por distancia, ordena dos mais perto para os mais longe.</td>
+      </tr>
+      <tr>
+        <td>None</td>
+        <td>Não aplica nenhuma ordenação.</td>
+      </tr>
+    </table>
 •	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
     <strong>Lista de category ids:</strong>
     <table class="table table-striped table-bordered" style="width:30%">
@@ -343,6 +361,75 @@ O resultado final será uma lista de pontos cuja distância ao ponto dado é men
   "status": "OK",
   "timestamp": 1528816433
 }</pre>
+                           <h4> Exemplo 4 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e a distância máxima é de 25 Quilometros. Ordenados por distância do mais perto para o mais longe, isto irá devolver os 3 pontos da base de dados que se encontram mais próximos, limitados até 25Km do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>num_poi</strong>=<em>3</em>&amp;<strong>order</strong>=<em>dist</em>&amp;<strong>dist</strong>=<em>25</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista de no máximo 3 pontos cuja distância ao ponto dado é menor ou igual a 25Km, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a função de  Haversine (<a href="https://en.wikipedia.org/wiki/Haversine_formula">https://en.wikipedia.org/wiki/Haversine_formula);</a><br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">        {
+  "log_time": 1552907184.9504297, 
+  "result": [
+    {
+      "distance": 4.546125905171964, 
+      "id": 717, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "De planta rectangular, a Casa de Almendra inscreve-se no modelo da denominada casa comprida, que caracterizou a arquitectura civil do nosso pa\u00eds no s\u00e9culo XVIII, e que se pauta por um desenvolvimento em comprimento, materializado numa longa fachada, apenas dinamizada pelos elementos decorativos, que lhe emprestam uma imagem cenogr\u00e1fica pr\u00f3pria do barroco. \r\nEdificada em blocos de granito, sem reboco, a casa desenvolve-se em dois pisos, cujas fachadas s\u00e3o abertas por v\u00e3os regulares e sim\u00e9tricos. Estes, caracterizam-se pelos aventais e lint\u00e9is decorados com enrolamentos e concheados rococ\u00f3, repetindo o mesmo modelo, que apenas se diferencia entre o piso t\u00e9rreo e o andar nobre, este \u00faltimo mais complexo. \r\n\u00c9, no entanto, na fachada principal, que se concentra a mais importante decora\u00e7\u00e3o, pelo dinamismo e movimento que a composi\u00e7\u00e3o imprime ao edif\u00edcio. O ritmo dos v\u00e3os converge, ao centro, na sec\u00e7\u00e3o definida por pilastras, e rematada pelo telhado de linhas onduladas, em cujo t\u00edmpano se inscreve o bras\u00e3o, que n\u00e3o apresenta qualquer elemento her\u00e1ldico. O portal, flanqueado por duas colunas, \u00e9 encimado pela varanda de planta contracurvada, com balaustrada que antecede a porta de moldura profusamente trabalhada.", 
+      "poi_lat": 40.999445, 
+      "poi_lon": -7.054167, 
+      "poi_name": "Casa de Almendra", 
+      "source": "http://www.patrimoniocultural.gov.pt/pt/patrimonio/patrimonio-imovel/pesquisa-do-patrimonio/classificado-ou-em-vias-de-classificacao/geral/view/73324"
+    }, 
+    {
+      "distance": 4.663849719959539, 
+      "id": 719, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "O pelourinho datar\u00e1 dos anos seguintes \u00e0 atribui\u00e7\u00e3o do foral manuelino, de acordo com a sua fei\u00e7\u00e3o quinhentista. Ergue-se num largo central da povoa\u00e7\u00e3o, diante da antiga Casa da C\u00e2mara e cadeia comarc\u00e3. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e \u00e9 rematada por uma moldura decorativa igualmente oitavada a pouca dist\u00e2ncia do topo, criando uma esp\u00e9cie de colarinho, ou arremedo de capitel, encimado por \u00e1baco oitavado. O remate \u00e9 em gaiola, constitu\u00edda por oito colunelos entre dois troncos de pir\u00e2mide oitavados, sendo o da base invertido. Esta mesma base, moldurada, \u00e9 decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos s\u00e3o cil\u00edndricos, assentes em pequena m\u00edsulas, e rematados por cogulhos no topo; o chap\u00e9u da gaiola, em pir\u00e2mide oitavada de faces lisas, assenta num colunelo central, tamb\u00e9m cil\u00edndrico e liso. O coroamento \u00e9 feito por uma pequena esfera armilar, encimada por uma diminuta pe\u00e7a terminal. ", 
+      "poi_lat": 41.001111, 
+      "poi_lon": -7.055556, 
+      "poi_name": "Pelourinho de Almendra", 
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt"
+    }, 
+    {
+      "distance": 4.826251228613056, 
+      "id": 718, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "Embora se conhe\u00e7am refer\u00eancias documentais \u00e0 exist\u00eancia de um templo em Almendra cerca de 1320, a Igreja de Nossa Senhora dos Anjos foi constru\u00edda no terceiro quartel do s\u00e9culo XVI, estando a obra de reedifica\u00e7\u00e3o conclu\u00edda possivelmente em 1565. \r\nNas cent\u00farias seguintes, a estrutura do edif\u00edcio foi alterada por algumas campanhas construtivas, nomeadamente no interior, com a edifica\u00e7\u00e3o de capelas laterais. \r\nO templo maneirista desenvolve-se em planta longitudinal composta por tr\u00eas naves rectangulares e capela-mor quadrangular, esta com contrafortes exteriores e remate em platibanda com g\u00e1rgulas de canh\u00e3o formando uma esp\u00e9cie de torre\u00e3o. \r\nA fachada principal, de linhas s\u00f3brias e gosto erudito, \u00e9 rasgada ao centro por portal de volta perfeita enquadrado em alfiz com pilastras e rematado por front\u00e3o triangular com medalh\u00e3o ao centro, onde foi gravada a data 1565. Este conjunto \u00e9 ladeado por dois contrafortes e encimado por \u00f3culo. Do lado direito da fachada foi edificada a torre sineira. \r\nNas fachadas laterais foram abertos dois portais de volta perfeita, que permitem o acesso \u00e0s naves laterais, de estrutura igual, enquadrado em alfiz, ladeados por colunelos e encimados por front\u00e3o.", 
+      "poi_lat": 41.000833, 
+      "poi_lon": -7.0575, 
+      "poi_name": "Igreja Matriz de Almendra", 
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/255/igreja-matriz-de-nossa-senhora-dos-anjos"
+    }
+  ], 
+  "status": "OK", 
+  "timestamp": 1552907185.162491
+}</pre>     
                             </div>
                         </div>
                     </div>
@@ -355,13 +442,34 @@ O resultado final será uma lista de pontos cuja distância ao ponto dado é men
                         </div>
                         <div id="collapseTwo" class="panel-collapse collapse">
                             <div class="panel-body">
-Esta função devolve todos os POI’s cuja duração da viagem entre eles e a localização geográfica definida pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente.<br>
+Esta função devolve todos os POI’s cuja duração da viagem entre eles e a localização geográfica definida pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente. Pode-se definir a ordenação dos resultados por classifcação ou tempo de viagem e definir o número de pontos retornados pela função.<br>
 <br>
-<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>&lt;latitude&gt;</em>&amp;<strong>lon</strong>=<em>&lt;longitude&gt;</em>&amp;<strong>num_poi</strong>=<em>&lt;número de pontos&gt;</em>&amp;<strong>order</strong>=<em>&lt;ordenação&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
 Parâmetros de entrada:<br>
                                 <ul> 
 •	<strong>lat</strong>: latitude do ponto que o utilizador quer;<br>
 •	<strong>lon</strong>: longitude do ponto que o utilizador quer;<br>
+•	<strong>num_poi</strong>: número máxido de pontos retornados pela chamada;<br>
+•	<strong>order</strong>: ordenação dos pontos retornados;<br>
+    <strong>Possibilidades de ordenação:</strong>
+        <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Input</th>
+        <th>Descrição</th>
+      </tr>
+      <tr>
+        <td>'score'</td>
+        <td>Ordena os resultados pela classificação dos pontos, das classificações mais elevadas para as menos.</td>
+      </tr>
+      <tr>
+        <td>'time'</td>
+        <td>Ordenação por tempo de viagem, ordena da viagem mais curta para a mais longa.</td>
+      </tr>
+      <tr>
+        <td>None</td>
+        <td>Não aplica nenhuma ordenação.</td>
+      </tr>
+    </table>
 •	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
     <strong>Lista de category ids:</strong>
     <table class="table table-striped table-bordered" style="width:30%">
@@ -603,6 +711,76 @@ O resultado final será uma lista de pontos cuja viagem do ponto dado até eles 
   "status": "OK",
   "timestamp": 1528816778
 }</pre>
+                                    <h4> Exemplo 4 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujas coordenadas são de latitude 41.0 e longitude -7.0, e o tempo máximo é de 900 segundos. Isto irá devolver todos os 3 pontos da base de dados que se encontram a 900 segundos de viagem do ponto dado, ordenados do próximo para o mais longinquo:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time?<strong>lat</strong>=<em>41.0</em>&amp;<strong>lon</strong>=<em>-7.0</em>&amp;<strong>num_poi</strong>=<em>3</em>&amp;<strong>order</strong>=<em>time</em>&amp;<strong>time</strong>=<em>900</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista de no máximo 3 pontos cuja viagem do ponto dado até eles demore menos que 900 segundos, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>    
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+  "log_time": 1552908041.0481434, 
+  "result": [
+    {
+      "id": 717, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "De planta rectangular, a Casa de Almendra inscreve-se no modelo da denominada casa comprida, que caracterizou a arquitectura civil do nosso pa\u00eds no s\u00e9culo XVIII, e que se pauta por um desenvolvimento em comprimento, materializado numa longa fachada, apenas dinamizada pelos elementos decorativos, que lhe emprestam uma imagem cenogr\u00e1fica pr\u00f3pria do barroco. \r\nEdificada em blocos de granito, sem reboco, a casa desenvolve-se em dois pisos, cujas fachadas s\u00e3o abertas por v\u00e3os regulares e sim\u00e9tricos. Estes, caracterizam-se pelos aventais e lint\u00e9is decorados com enrolamentos e concheados rococ\u00f3, repetindo o mesmo modelo, que apenas se diferencia entre o piso t\u00e9rreo e o andar nobre, este \u00faltimo mais complexo. \r\n\u00c9, no entanto, na fachada principal, que se concentra a mais importante decora\u00e7\u00e3o, pelo dinamismo e movimento que a composi\u00e7\u00e3o imprime ao edif\u00edcio. O ritmo dos v\u00e3os converge, ao centro, na sec\u00e7\u00e3o definida por pilastras, e rematada pelo telhado de linhas onduladas, em cujo t\u00edmpano se inscreve o bras\u00e3o, que n\u00e3o apresenta qualquer elemento her\u00e1ldico. O portal, flanqueado por duas colunas, \u00e9 encimado pela varanda de planta contracurvada, com balaustrada que antecede a porta de moldura profusamente trabalhada.", 
+      "poi_lat": 40.999445, 
+      "poi_lon": -7.054167, 
+      "poi_name": "Casa de Almendra", 
+      "source": "http://www.patrimoniocultural.gov.pt/pt/patrimonio/patrimonio-imovel/pesquisa-do-patrimonio/classificado-ou-em-vias-de-classificacao/geral/view/73324", 
+      "trip_duration": 554.2
+    }, 
+    {
+      "id": 719, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "O pelourinho datar\u00e1 dos anos seguintes \u00e0 atribui\u00e7\u00e3o do foral manuelino, de acordo com a sua fei\u00e7\u00e3o quinhentista. Ergue-se num largo central da povoa\u00e7\u00e3o, diante da antiga Casa da C\u00e2mara e cadeia comarc\u00e3. Sobre um soco de quatro degraus octogonais, de pedra aparelhada, acrescidos de um quinto que forma a base do fuste, levanta-se o conjunto da coluna, capitel e remate. A coluna possui fuste oitavado e liso, e \u00e9 rematada por uma moldura decorativa igualmente oitavada a pouca dist\u00e2ncia do topo, criando uma esp\u00e9cie de colarinho, ou arremedo de capitel, encimado por \u00e1baco oitavado. O remate \u00e9 em gaiola, constitu\u00edda por oito colunelos entre dois troncos de pir\u00e2mide oitavados, sendo o da base invertido. Esta mesma base, moldurada, \u00e9 decorada com elementos vegetalistas e cabecinhas de anjos. Os colunelos s\u00e3o cil\u00edndricos, assentes em pequena m\u00edsulas, e rematados por cogulhos no topo; o chap\u00e9u da gaiola, em pir\u00e2mide oitavada de faces lisas, assenta num colunelo central, tamb\u00e9m cil\u00edndrico e liso. O coroamento \u00e9 feito por uma pequena esfera armilar, encimada por uma diminuta pe\u00e7a terminal. ", 
+      "poi_lat": 41.001111, 
+      "poi_lon": -7.055556, 
+      "poi_name": "Pelourinho de Almendra", 
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/253/pelourinho-de-almendra                www.patrimoniocultural.gov.pt", 
+      "trip_duration": 572.2
+    }, 
+    {
+      "id": 718, 
+      "images": "", 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Vila Nova de Foz C\u00f4a", 
+      "poi_descript": "Embora se conhe\u00e7am refer\u00eancias documentais \u00e0 exist\u00eancia de um templo em Almendra cerca de 1320, a Igreja de Nossa Senhora dos Anjos foi constru\u00edda no terceiro quartel do s\u00e9culo XVI, estando a obra de reedifica\u00e7\u00e3o conclu\u00edda possivelmente em 1565. \r\nNas cent\u00farias seguintes, a estrutura do edif\u00edcio foi alterada por algumas campanhas construtivas, nomeadamente no interior, com a edifica\u00e7\u00e3o de capelas laterais. \r\nO templo maneirista desenvolve-se em planta longitudinal composta por tr\u00eas naves rectangulares e capela-mor quadrangular, esta com contrafortes exteriores e remate em platibanda com g\u00e1rgulas de canh\u00e3o formando uma esp\u00e9cie de torre\u00e3o. \r\nA fachada principal, de linhas s\u00f3brias e gosto erudito, \u00e9 rasgada ao centro por portal de volta perfeita enquadrado em alfiz com pilastras e rematado por front\u00e3o triangular com medalh\u00e3o ao centro, onde foi gravada a data 1565. Este conjunto \u00e9 ladeado por dois contrafortes e encimado por \u00f3culo. Do lado direito da fachada foi edificada a torre sineira. \r\nNas fachadas laterais foram abertos dois portais de volta perfeita, que permitem o acesso \u00e0s naves laterais, de estrutura igual, enquadrado em alfiz, ladeados por colunelos e encimados por front\u00e3o.", 
+      "poi_lat": 41.000833, 
+      "poi_lon": -7.0575, 
+      "poi_name": "Igreja Matriz de Almendra", 
+      "source": "http://turismovirtual.amdourosuperior.com/pt/microsite/poi/255/igreja-matriz-de-nossa-senhora-dos-anjos", 
+      "trip_duration": 587.4
+    }
+  ], 
+  "status": "OK", 
+  "timestamp": 1552908041.3601897
+}</pre>
                             </div>
                         </div>
                     </div>
@@ -614,11 +792,12 @@ O resultado final será uma lista de pontos cuja viagem do ponto dado até eles 
                         </div>
                         <div id="collapseThree" class="panel-collapse collapse">
                             <div class="panel-body">
-Esta função devolve todos os POI’s que pertençam a uma categoria e/ou concelho. Pelo menos um destes parametros tem de ser dado.<br>
+Esta função devolve todos os POI’s que pertençam a uma categoria e/ou concelho. Pelo menos um destes parametros tem de ser dado. Pode definir-se o número de pontos que a função retorna.<br>
 <br>
-<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>num_poi</strong>=<em>&lt;número de pontos&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
 Parâmetros de entrada:<br>
                                 <ul> 
+•	<strong>num_poi</strong>: número máxido de pontos retornados pela chamada;<br>
 •	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
     <strong>Lista de category ids:</strong>
     <table class="table table-striped table-bordered" style="width:30%">
@@ -775,6 +954,85 @@ O resultado final será uma lista com os museus todos da base de dados, em forma
   "status": "OK",
   "timestamp": 1528816888
 }</pre>
+                                <h4> Exemplo 3 </h4>
+<br>
+No seguinte exemplo é chamada a função com a categoria cujo ID é 1 (museu) e conselho cujo ID é 10 (Lamego). Limitamos a pesquisa a 3 pontos, isto irá devolver 3 museus no concelho de Lamego, ordenados do melhor pontuado para o pior.<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi?<strong>num_poi</strong>=<em>3</em>&amp;<strong>cat</strong>=<em>1&amp;</em><strong>conc</strong>=<em>10&amp;</em><strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com 3 museus no concelho de Lamego, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                    </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">{
+  "log_time": 1552908942.414882, 
+  "result": [
+    {
+      "id": 81, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_4582.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_3873.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC_7605_web.jpg"
+      ], 
+      "poi_categ": "Museus", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "O Museu de Lamego est\u00e1 situado no centro da cidade, pr\u00f3ximo da catedral, de fronte para o santu\u00e1rio de Nossa Senhora dos Rem\u00e9dios.\r\nCriado no contexto do ide\u00e1rio republicano, por decreto de 5 de Outubro de 1917, abriu ao p\u00fablico a 21 de Maio do ano seguinte, tendo sido seu primeiro diretor o artista lamecense \u2013 Jo\u00e3o Amaral. \r\nOcupa o edif\u00edcio do antigo Pa\u00e7o Episcopal, reconstru\u00eddo no s\u00e9culo XVI pelo bispo D. Fernando de Menezes Coutinho e Vasconcelos (1513-1540).\r\n Cerca de 200 anos depois outro prelado da diocese, D. Manuel de Vasconcelos Pereira (1773-1786), procedeu \u00e0 sua requalifica\u00e7\u00e3o, conferindo-lhe o gosto da \u00e9poca, bem presente na sua fachada. Composta de tr\u00eas corpos, o central rasgado por portal armoriado, com o bras\u00e3o do bispo e dois corpos laterais rasgados por v\u00e3os, correspondendo ao 1\u00ba piso janelas de avental encimadas por front\u00f5es curvil\u00edneos. No centro dos dois corpos decantam-se duas janelas de sacada \u00e0s quais correspondem dois varandins com bala\u00fastres que refor\u00e7am a horizontalidade do edif\u00edcio, definida pela longa cornija, ainda que em conseguido equil\u00edbrio conferido pelo ritmo dos v\u00e3os e a verticalidade das pilastras.\r\nNo seu acervo, rico e diversificado, na natureza, cronologias e proveni\u00eancia, destacam-se as Colec\u00e7\u00f5es de Arqueologia, Epigrafia, Mobili\u00e1rio, Tape\u00e7aria, Pintura, Escultura e Pintura Religiosa, Paramentaria, Artes Decorativas, Fotografia e Etnografia.\r\n De salientar a import\u00e2ncia do esp\u00f3lio do Pa\u00e7o Episcopal, da S\u00e9 e do extinto convento das Chagas, com o conjunto not\u00e1vel de tape\u00e7arias flamengas do inicio do s\u00e9c. XVI; as cinco pinturas de Gr\u00e3o Vasco, que constitu\u00edram parte do ret\u00e1bulo da S\u00e9 e as capelas de S\u00e3o Jo\u00e3o Batista e de S\u00e3o Jo\u00e3o Evangelista que integravam o claustro do convento.\r\nMais recentemente diversas doa\u00e7\u00f5es e legados t\u00eam contribu\u00eddo de forma muito relevante para o enriquecimento do Museu, dos quais \u00e9 justo salientar as doa\u00e7\u00f5es de Fausto Guedes Teixeira, Jo\u00e3o Amaral, de Humberto Leit\u00e3o, Ema Guedes Teixeira Vieira de Magalh\u00e3es, Jo\u00e3o de Almeida, Raul Videira Xavier de Morais Sarmento, Ant\u00f3nio Rodrigues Tavares e dos herdeiros do Monsenhor Correia de Noronha, entre muitos outros, e os legados de Vasco de Vasconcelos e de Ana Maria Pereira da Gama. \r\nO Esp\u00f3lio Documental da Biblioteca do antigo Pa\u00e7o Episcopal, ou os Fundos da Igreja de S\u00e3o Pedro de Balsem\u00e3o, dos da Associa\u00e7\u00e3o dos Bombeiros Volunt\u00e1rios de Lamego ou do Registo Civil, ou os cerca de 8000 volumes que constituem o acervo da Biblioteca s\u00e3o uma mais valia para a comunidade onde o museu se insere.", 
+      "poi_lat": 41.097407, 
+      "poi_lon": -7.806235, 
+      "poi_name": "Museu de Lamego", 
+      "source": "http://www.museudelamego.pt/"
+    }, 
+    {
+      "id": 84, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_DSC01909.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_9939.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC01911.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC01913.JPG"
+      ], 
+      "poi_categ": "Museus", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "Pensado como um espa\u00e7o cultural dedicado \u00e0 M\u00e1scara, o Centro Interpretativo da M\u00e1scara Ib\u00e9rica tem como principal objetivo a valoriza\u00e7\u00e3o, promo\u00e7\u00e3o e divulga\u00e7\u00e3o deste patrim\u00f3nio cultural de import\u00e2ncia, simbolismo e significado universalmente reconhecido.\r\nConstru\u00eddo no antigo Solar dos Viscondes de Lazarim, o CIMI conta uma exposi\u00e7\u00e3o \u2013 trajes, m\u00e1scaras e objetos das mascaradas invernais e entrudos de Portugal e Espanha \u2013 e a biblioteca, estando projetada a prepara\u00e7\u00e3o de conte\u00fado para uma mediateca e fototeca.\r\nA forte presen\u00e7a da m\u00e1scara e rituais a ela ligados justifica a exist\u00eancia de um centro interpretativo que procure envolver todas estas manifesta\u00e7\u00f5es culturais, estudando e interpretando o seu significado, atrav\u00e9s do contacto com as popula\u00e7\u00f5es e de pesquisas sobre as suas hist\u00f3rias e origens.\r\nUm espa\u00e7o cultural rico em hist\u00f3rias e tradi\u00e7\u00f5es que contam viv\u00eancias de outrora, que ainda hoje insistem em se renovar, dando a conhecer rituais simb\u00f3licos cujas origens foram perdidas no tempo.", 
+      "poi_lat": 41.031389, 
+      "poi_lon": -7.844445, 
+      "poi_name": "Centro Interpretativo M\u00e1scaras Ib\u00e9ricas-CIMI", 
+      "source": "https://www.facebook.com/CIMI.LAMEGO/\r\nhttp://www.cm-lamego.pt/  "
+    }, 
+    {
+      "id": 110, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_DSC01727.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_9576.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_9580.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_9547.JPG"
+      ], 
+      "poi_categ": "Museus", 
+      "poi_conc": "Peso da R\u00e9gua", 
+      "poi_descript": "O Museu do Douro, criado pela Lei 125/97, foi concebido como um museu de territ\u00f3rio, polivalente e polinuclear, vocacionado para reunir, conservar, identificar e divulgar o vast\u00edssimo patrim\u00f3nio museol\u00f3gico e documental disperso pela regi\u00e3o, devendo constituir um instrumento ao servi\u00e7o do desenvolvimento sociocultural da Regi\u00e3o Demarcada do Douro. Numa perspetiva de \"museologia de comunidade\", o Museu do Douro assume-se como processo cujo desenvolvimento dever\u00e1 envolver a colabora\u00e7\u00e3o ativa com as institui\u00e7\u00f5es locais, regionais e internacionais.", 
+      "poi_lat": 41.161389, 
+      "poi_lon": -7.789445, 
+      "poi_name": "Museu do Douro", 
+      "source": "http://www.museudodouro.pt"
+    }
+  ], 
+  "status": "OK", 
+  "timestamp": 1552908942.423796
+}</pre>
                             </div>
                         </div>
                     </div>
@@ -787,14 +1045,35 @@ O resultado final será uma lista com os museus todos da base de dados, em forma
                         </div>
                         <div id="collapseFour" class="panel-collapse collapse">
                             <div class="panel-body">
-Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto de interesse definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. <br>
+Esta função devolve os POI’s a menos de uma distância geográfica máxima de um ponto de interesse definido pelo utilizador. A distância geográfica é a distancia entre dois pontos caso o trajecto fosse recto e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula"> função de Haversine</a>. É possivel a utilização de ids de categoria e/ou concelho para limitar a busca a estes parametros. Pode-se definir a ordenação dos resultados por classifcação ou distância e definir o número de pontos retornados pela função.<br>
 <br>
-<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>num_poi</strong>=<em>&lt;número de pontos&gt;</em>&amp;<strong>order</strong>=<em>&lt;ordenação&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>dist</strong>=<em>&lt;distância&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em>
 </pre>
                      
 Parâmetros de entrada:<br>
                                 <ul> 
 •	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>num_poi</strong>: número máxido de pontos retornados pela chamada;<br>
+•	<strong>order</strong>: ordenação dos pontos retornados;<br>
+    <strong>Possibilidades de ordenação:</strong>
+        <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Input</th>
+        <th>Descrição</th>
+      </tr>
+      <tr>
+        <td>'score'</td>
+        <td>Ordena os resultados pela classificação dos pontos, das classificações mais elevadas para as menos.</td>
+      </tr>
+      <tr>
+        <td>'dist'</td>
+        <td>Ordenação por distancia, ordena dos mais perto para os mais longe.</td>
+      </tr>
+      <tr>
+        <td>None</td>
+        <td>Não aplica nenhuma ordenação.</td>
+      </tr>
+    </table>
 •	<strong>cat</strong>: ID da categoria dos pontos que deseja encontrar;<br>
     <strong>Lista de category IDs:</strong>
     <table class="table table-striped table-bordered" style="width:30%">
@@ -1048,6 +1327,93 @@ O resultado final será uma lista com todos os POI's que se encontram a 5Km do p
   "status": "OK",
   "timestamp": 1528817187
 }</pre>
+                                <h4> Exemplo 4 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e a distância máxima é de 5 Quilometros. Esta função irá devolver os 3 pontos da base de dados melhor classificados que se encontram a 5Km do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/dist_id?<strong>id</strong>=<em>71</em>&amp;<strong>num_poi</strong>=<em>3</em>&amp;<strong>order</strong>=<em>score</em>&amp;<strong>dist</strong>=<em>5</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista dos 3 POI's melhor classificados que se encontram a 5Km do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>Distance</strong>: distância em quilometros entre este ponto e o ponto dado na função. Esta distância é geográfica e é calculada usando a <a href="https://en.wikipedia.org/wiki/Haversine_formula">função de  Haversine</a>;<br>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto.<br>
+                                </ul> 
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+  "log_time": 1552909303.6310978, 
+  "result": [
+    {
+      "distance": 0.0, 
+      "id": 71, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_0904.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1233.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1238.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0560.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1281.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1268.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1274.JPG"
+      ], 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "Formando um conjunto classificado como Monumento Nacional, o castelo, muralha e cisterna de Lamego (o castelo e muralha desde 1910, e a cisterna desde 1951), apresenta vest\u00edgios de v\u00e1rias \u00e9pocas, que testemunham sucessivamente a ocupa\u00e7\u00e3o romana, \u00e1rabe, crist\u00e3 e, inclusivamente, judaica. \r\nO castelo possui uma torre de menagem de planta quadrangular com vinte metros de altura. As suas frestas foram transformadas em janelas, no s\u00e9culo XVI, por ordem do \u00faltimo conde de Marialva, D. Francisco Coutinho (c. 1480-1532), com o prov\u00e1vel objetivo de lhe adicionar a fun\u00e7\u00e3o habitacional. Possui pra\u00e7a de armas cercada por muralha (cerca de noventa metros de per\u00edmetro) dotada de adarve, acess\u00edvel pelo lado norte por um lan\u00e7o de escadas.\r\nDuas portas permitem o acesso ao burgo. Do lado norte, a porta dos Figos ou dos Fogos, tamb\u00e9m denominada do Aguil\u00e3o, e do lado sul, a porta do Sol. \r\nJunto do acesso norte, situa-se a casa da torre. Hoje convertida em base do Agrupamento 140 do Corpo Nacional de Escutas, a\u00ed estiveram instalados, at\u00e9 1834, os pa\u00e7os do concelho. \r\nO castelo foi objeto de uma interven\u00e7\u00e3o levada a cabo pela Direc\u00e7\u00e3o-Geral dos Edif\u00edcios e Monumentos Nacionais (DGEMN) entre 1940-1944, altura em que a torre sineira foi substitu\u00edda por ameias. Obras de requalifica\u00e7\u00e3o posteriores, decorridas entre 1955-1991, vieram libertar o edif\u00edcio e zonas envolventes de estruturas adossadas e recuperar ou consolidar outras. \r\nSituada dentro do per\u00edmetro muralhado do castelo, a cisterna \u00e9 um dos melhores exemplares que se conservam no pa\u00eds. Em granito lavrado e siglado, possui planta retangular, com 20 metros de comprimento e 10 de largura. A cobertura abobadada, com ogiva nervada, \u00e9 sustentada por quatro arcos apontados, apoiados em pilares laterais, no eixo dos quais possui pequena abertura para entrada da luz.\r\nPermite o aceso ao interior da cisterna uma porta lateral com escada interior e liga\u00e7\u00e3o \u00e0 muralha.\r\nApresenta plataforma com quatro aberturas para recolha das \u00e1guas pluviais.\r\nRequalificada e musealizada, abriu ao p\u00fablico em 2013, com uma exposi\u00e7\u00e3o documental de registos audiovisuais, que evocam as mem\u00f3rias e viv\u00eancias da cidade. ", 
+      "poi_lat": 41.099178, 
+      "poi_lon": -7.808769, 
+      "poi_name": "Castelo de Lamego e Cisterna ", 
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna"
+    }, 
+    {
+      "distance": 0.34115208777312045, 
+      "id": 74, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_4648.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0807.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC02207.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0549.JPG"
+      ], 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "Edif\u00edcio cuja constru\u00e7\u00e3o se iniciou c. de 1159 ap\u00f3s a restaura\u00e7\u00e3o da diocese de Lamego em 1147, com a nomea\u00e7\u00e3o de D. Mendo.\r\nDeste per\u00edodo, apenas na torre que flanqueia a fachada a sul, podemos encontrara alguns vest\u00edgios.\r\nDe planta quadrangular assente sobre pronunciado embasamento, desenvolve-se em tr\u00eas registos, sendo o \u00faltimo uma tardia reconstru\u00e7\u00e3o do original. Nela se destacam as estreitas frestas e as janelas com arco de volta perfeita e pequenos colunelos.\r\n  Reconstru\u00edda entre o s\u00e9culo XV \u2013 XVI, apresenta quer na sua concep\u00e7\u00e3o espacial, quer no seu al\u00e7ado uma gram\u00e1tica marcada pelo g\u00f3tico flamejante, com a presen\u00e7a de t\u00edmidos elementos renascentistas.\r\nA fachada principal, objeto da campanha de obras ocorrida entre 1508-1515 com risco do arquiteto Jo\u00e3o Lopes, desenvolve-se em tr\u00eas panos definidos por pesados contrafortes rematados por pin\u00e1culos cogulhados. O piso t\u00e9rreo abre-se por p\u00f3rtico central ladeado por dois id\u00eanticos de menores dimens\u00f5es, rematados por arcos ogivais constitu\u00eddos por arquivoltas assentes em colunelos ornados de elementos vegetalistas, zoom\u00f3rficos e antropom\u00f3rficos, onde se desenvolve o imagin\u00e1rio medievo marcado por um simbolismo que evidencia a separa\u00e7\u00e3o entre o bem e o mal, o sagrado e o profano. \r\n A norte destaca-se o corpo do claustro do s\u00e9c. XVI, com dois registos, sendo o primeiro constitu\u00eddo por arcadas, com arcos de volta perfeita e o superior com s\u00f3brio varandim. \r\nO interior apresenta uma planta de tr\u00eas naves dividas por tr\u00eas tramos, transepto e cabeceira. O teto em abobada de aresta sustentada por arcos de volta perfeita e grossos pilares. De registar os elementos barrocos, objecto das obras de requalifica\u00e7\u00e3o sofridas no s\u00e9culo XVIII, das quais se destacam as pinturas perspectivadas de Nicolau Nasoni, onde a narrativa b\u00edblica ganha vida em din\u00e2micos enquadramentos arquitect\u00f3nicos e elementos vegetalistas, bem como a talha dourada que invade todas as estruturas retabulares, da capela mor aos ret\u00e1bulos das v\u00e1rias capelas que circundam o espa\u00e7o, dando express\u00e3o ao barroco nacional, joanino e rococ\u00f3.\r\nDo seu recheio destacam-se o frontal de prata do altar principal da capela do Sant\u00edssimo, obra de ourives portuense do terceiro quartel do s\u00e9c. XVIII, dos \u00f3rg\u00e3os, obra de Francisco Ant\u00f3nio Solha, o cadeiral e o p\u00falpito tamb\u00e9m em talha. \r\nNo Claustro podem observar-se as capelas quinhentistas de Santo Ant\u00f3nio e de S\u00e3o Nicolau, ambas do s\u00e9culo XVI, ornadas de boa talha dourada e policromada, possuindo, esta \u00faltima, tamb\u00e9m interessantes pain\u00e9is de azulejos historiados onde se ilustra a vida de S\u00e3o Nicolau.\r\nA S\u00e9 de Lamego, referencia patrimonial da cidade, materializa no seu conjunto a sua antiguidade e percurso hist\u00f3rico, marcado pelas interven\u00e7\u00f5es sofridas, pelo gosto e solu\u00e7\u00f5es t\u00e9cnicas de cada \u00e9poca, bem como o cunho de prelados com meios e vontade f\u00e9rrea, dos quais se destacaram, no s\u00e9culo XVI, D. Jo\u00e3o Camelo de Madureira (1502-1513), D. Fernando de Menezes Coutinho e Vasconcelos (1513-1540) e D. Manuel de Noronha (1551-1569) e, no s\u00e9culo XVIII, D. frei Feliciano de Nossa Senhora (1743-1771) e D. Manuel de Vasconcelos Pereira (1773-1786).", 
+      "poi_lat": 41.096537, 
+      "poi_lon": -7.806697, 
+      "poi_name": "S\u00e9 Catedral de Lamego", 
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/"
+    }, 
+    {
+      "distance": 0.2895968068295102, 
+      "id": 81, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_4582.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_3873.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC_7605_web.jpg"
+      ], 
+      "poi_categ": "Museus", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "O Museu de Lamego est\u00e1 situado no centro da cidade, pr\u00f3ximo da catedral, de fronte para o santu\u00e1rio de Nossa Senhora dos Rem\u00e9dios.\r\nCriado no contexto do ide\u00e1rio republicano, por decreto de 5 de Outubro de 1917, abriu ao p\u00fablico a 21 de Maio do ano seguinte, tendo sido seu primeiro diretor o artista lamecense \u2013 Jo\u00e3o Amaral. \r\nOcupa o edif\u00edcio do antigo Pa\u00e7o Episcopal, reconstru\u00eddo no s\u00e9culo XVI pelo bispo D. Fernando de Menezes Coutinho e Vasconcelos (1513-1540).\r\n Cerca de 200 anos depois outro prelado da diocese, D. Manuel de Vasconcelos Pereira (1773-1786), procedeu \u00e0 sua requalifica\u00e7\u00e3o, conferindo-lhe o gosto da \u00e9poca, bem presente na sua fachada. Composta de tr\u00eas corpos, o central rasgado por portal armoriado, com o bras\u00e3o do bispo e dois corpos laterais rasgados por v\u00e3os, correspondendo ao 1\u00ba piso janelas de avental encimadas por front\u00f5es curvil\u00edneos. No centro dos dois corpos decantam-se duas janelas de sacada \u00e0s quais correspondem dois varandins com bala\u00fastres que refor\u00e7am a horizontalidade do edif\u00edcio, definida pela longa cornija, ainda que em conseguido equil\u00edbrio conferido pelo ritmo dos v\u00e3os e a verticalidade das pilastras.\r\nNo seu acervo, rico e diversificado, na natureza, cronologias e proveni\u00eancia, destacam-se as Colec\u00e7\u00f5es de Arqueologia, Epigrafia, Mobili\u00e1rio, Tape\u00e7aria, Pintura, Escultura e Pintura Religiosa, Paramentaria, Artes Decorativas, Fotografia e Etnografia.\r\n De salientar a import\u00e2ncia do esp\u00f3lio do Pa\u00e7o Episcopal, da S\u00e9 e do extinto convento das Chagas, com o conjunto not\u00e1vel de tape\u00e7arias flamengas do inicio do s\u00e9c. XVI; as cinco pinturas de Gr\u00e3o Vasco, que constitu\u00edram parte do ret\u00e1bulo da S\u00e9 e as capelas de S\u00e3o Jo\u00e3o Batista e de S\u00e3o Jo\u00e3o Evangelista que integravam o claustro do convento.\r\nMais recentemente diversas doa\u00e7\u00f5es e legados t\u00eam contribu\u00eddo de forma muito relevante para o enriquecimento do Museu, dos quais \u00e9 justo salientar as doa\u00e7\u00f5es de Fausto Guedes Teixeira, Jo\u00e3o Amaral, de Humberto Leit\u00e3o, Ema Guedes Teixeira Vieira de Magalh\u00e3es, Jo\u00e3o de Almeida, Raul Videira Xavier de Morais Sarmento, Ant\u00f3nio Rodrigues Tavares e dos herdeiros do Monsenhor Correia de Noronha, entre muitos outros, e os legados de Vasco de Vasconcelos e de Ana Maria Pereira da Gama. \r\nO Esp\u00f3lio Documental da Biblioteca do antigo Pa\u00e7o Episcopal, ou os Fundos da Igreja de S\u00e3o Pedro de Balsem\u00e3o, dos da Associa\u00e7\u00e3o dos Bombeiros Volunt\u00e1rios de Lamego ou do Registo Civil, ou os cerca de 8000 volumes que constituem o acervo da Biblioteca s\u00e3o uma mais valia para a comunidade onde o museu se insere.", 
+      "poi_lat": 41.097407, 
+      "poi_lon": -7.806235, 
+      "poi_name": "Museu de Lamego", 
+      "source": "http://www.museudelamego.pt/"
+    }
+  ], 
+  "status": "OK", 
+  "timestamp": 1552909303.7138617
+}</pre>
                             </div>
                         </div>
                     </div>
@@ -1059,12 +1425,37 @@ O resultado final será uma lista com todos os POI's que se encontram a 5Km do p
                         </div>
                         <div id="collapseFive" class="panel-collapse collapse">
                             <div class="panel-body">
-Esta função devolve todos os POI’s cuja duração da viagem entre eles e o POI definido pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente.<br>
+Esta função devolve todos os POI’s cuja duração da viagem entre eles e o POI definido pelo utilizador é menor que um dado tempo. Tambem aceita como parametros opcionais um ID de categoria e/ou um ID de concelho para filtração por categoria e/ou concelho, respectivamente.Pode-se definir a ordenação dos resultados por classifcação, tempo de viagem ou distância e definir o número de pontos retornados pela função.<br>
 <br>
-<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>&lt;POI_ID&gt;</em>&amp;<strong>num_poi</strong>=<em>&lt;número de pontos&gt;</em>&amp;<strong>order</strong>=<em>&lt;ordenação&gt;</em>&amp;<strong>cat</strong>=<em>&lt;category_id&gt;</em>&amp;<strong>conc</strong>=<em>&lt;concelho_id&gt;</em>&amp;<strong>time</strong>=<em>&lt;tempo&gt;</em>&amp;<strong>key</strong>=<em>&lt;chave&gt;</em></pre>
 Parâmetros de entrada:<br>
                                 <ul> 
 •	<strong>id</strong>: ID do ponto desejado;<br>
+•	<strong>num_poi</strong>: número máxido de pontos retornados pela chamada;<br>
+•	<strong>order</strong>: ordenação dos pontos retornados;<br>
+    <strong>Possibilidades de ordenação:</strong>
+        <table class="table table-striped table-bordered" style="width:30%">
+      <tr>
+        <th>Input</th>
+        <th>Descrição</th>
+      </tr>
+      <tr>
+        <td>'score'</td>
+        <td>Ordena os resultados pela classificação dos pontos, das classificações mais elevadas para as menos.</td>
+      </tr>
+      <tr>
+        <td>'dist'</td>
+        <td>Ordenação por distancia, ordena dos mais perto para os mais longe.</td>
+      </tr>
+      <tr>
+        <td>'time'</td>
+        <td>Ordenação por tempo de viagem, ordena da viagem mais curta para a mais longa.</td>
+      </tr>
+      <tr>
+        <td>None</td>
+        <td>Não aplica nenhuma ordenação.</td>
+      </tr>
+    </table>
 •	<strong>cat</strong>: id da categoria dos pontos que deseja encontrar;<br>
     <strong>Lista de category ids:</strong>
     <table class="table table-striped table-bordered" style="width:30%">
@@ -1315,7 +1706,98 @@ O resultado final será uma lista com todos POI's que se alcançam em menos de 2
   ],
   "status": "OK",
   "timestamp": 1528817479
-}</pre>                         
+}</pre>         
+                                 <h4> Exemplo 4 </h4>
+<br>
+No seguinte exemplo é chamada a função com o ponto cujo ID é 71 (Castelo de Lamego e Cisterna), e o tempo máximo é de 2800 segundos. São acrescentados os parâmetros para limitar o retorno a 3 pontos e a ordenação por classificação por ordem descendente, irá devolver os 3 POI's melhor classificados que se encontram a 2800 segundos de viagem do ponto dado:<br>
+<br>
+<pre class="prettyprint">{{request.host_url}}api/v1.0/poi_time_id?<strong>id</strong>=<em>71</em>&amp;<strong>num_poi</strong>=<em>3</em>&amp;<strong>order</strong>=<em>score</em>&amp;<strong>time</strong>=<em>2800</em>&amp;<strong>key</strong>=<em>&lt;API_KEY&gt;</em></pre>
+                                <h6><strong>*</strong>Ao executar este exemplo, lembre-se de substituir &lt;API_KEY&gt; pela chave que lhe foi atribuida.</h6>
+<br>
+O resultado final será uma lista com os 3 POI's melhor classificados que se alcançam em menos de 2800 segundos caso se inicie a viagem apartir do ponto dado, em formato JSON com os seguintes parâmetros:<br>
+                                <ul> 
+<strong>result</strong><br>
+    <ul>
+    •	<strong>poi_lat</strong>: Latitude deste ponto;<br>
+    •	<strong>poi_lon</strong>: Longitude deste ponto;<br>
+    •	<strong>poi_name</strong>: Nome deste ponto;<br>
+    •	<strong>id</strong>: O ID deste ponto na base de dados;<br>
+    •	<strong>imagens</strong>: Array de imagens que pertencem a este ponto;<br>  
+    •	<strong>poi_categ</strong>: Categoria do ponto;<br>
+    •	<strong>poi_conc</strong>: Concelho onde se encontra o ponto do ponto;<br>
+    •	<strong>poi_descript</strong>: Descrição do ponto;<br>
+    •	<strong>source</strong>: Fonte onde se foram buscar os dados do ponto;<br>
+    •	<strong>trip_distance</strong>: Distância em quilometros entre o nosso ponto e este ponto.<br>
+    •	<strong>trip_duration</strong>: Tempo em segundos que demora a ir do nosso ponto a este ponto.<br>
+                                    </ul>
+<strong>status</strong>: Mensagem sobre o estado do query, indica se este sucedeu ou não;<br>
+<strong>timestamp</strong>: Devolve o tempo em que foi executada a chamada em formato tempo UNIX;<br>
+                                    </ul> 
+
+                                <h4> Resposta </h4>
+                                    <pre class="prettyprint">    {
+  "log_time": 1552909764.0821214, 
+  "result": [
+    {
+      "id": 71, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_0904.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1233.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1238.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0560.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1281.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1268.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_1274.JPG"
+      ], 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "Formando um conjunto classificado como Monumento Nacional, o castelo, muralha e cisterna de Lamego (o castelo e muralha desde 1910, e a cisterna desde 1951), apresenta vest\u00edgios de v\u00e1rias \u00e9pocas, que testemunham sucessivamente a ocupa\u00e7\u00e3o romana, \u00e1rabe, crist\u00e3 e, inclusivamente, judaica. \r\nO castelo possui uma torre de menagem de planta quadrangular com vinte metros de altura. As suas frestas foram transformadas em janelas, no s\u00e9culo XVI, por ordem do \u00faltimo conde de Marialva, D. Francisco Coutinho (c. 1480-1532), com o prov\u00e1vel objetivo de lhe adicionar a fun\u00e7\u00e3o habitacional. Possui pra\u00e7a de armas cercada por muralha (cerca de noventa metros de per\u00edmetro) dotada de adarve, acess\u00edvel pelo lado norte por um lan\u00e7o de escadas.\r\nDuas portas permitem o acesso ao burgo. Do lado norte, a porta dos Figos ou dos Fogos, tamb\u00e9m denominada do Aguil\u00e3o, e do lado sul, a porta do Sol. \r\nJunto do acesso norte, situa-se a casa da torre. Hoje convertida em base do Agrupamento 140 do Corpo Nacional de Escutas, a\u00ed estiveram instalados, at\u00e9 1834, os pa\u00e7os do concelho. \r\nO castelo foi objeto de uma interven\u00e7\u00e3o levada a cabo pela Direc\u00e7\u00e3o-Geral dos Edif\u00edcios e Monumentos Nacionais (DGEMN) entre 1940-1944, altura em que a torre sineira foi substitu\u00edda por ameias. Obras de requalifica\u00e7\u00e3o posteriores, decorridas entre 1955-1991, vieram libertar o edif\u00edcio e zonas envolventes de estruturas adossadas e recuperar ou consolidar outras. \r\nSituada dentro do per\u00edmetro muralhado do castelo, a cisterna \u00e9 um dos melhores exemplares que se conservam no pa\u00eds. Em granito lavrado e siglado, possui planta retangular, com 20 metros de comprimento e 10 de largura. A cobertura abobadada, com ogiva nervada, \u00e9 sustentada por quatro arcos apontados, apoiados em pilares laterais, no eixo dos quais possui pequena abertura para entrada da luz.\r\nPermite o aceso ao interior da cisterna uma porta lateral com escada interior e liga\u00e7\u00e3o \u00e0 muralha.\r\nApresenta plataforma com quatro aberturas para recolha das \u00e1guas pluviais.\r\nRequalificada e musealizada, abriu ao p\u00fablico em 2013, com uma exposi\u00e7\u00e3o documental de registos audiovisuais, que evocam as mem\u00f3rias e viv\u00eancias da cidade. ", 
+      "poi_lat": 41.099178, 
+      "poi_lon": -7.808769, 
+      "poi_name": "Castelo de Lamego e Cisterna ", 
+      "source": "http://www.cm-lamego.pt/patrimonio/castelo-cisterna", 
+      "trip_distance": 0, 
+      "trip_duration": 0
+    }, 
+    {
+      "id": 74, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_4648.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0807.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC02207.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_0549.JPG"
+      ], 
+      "poi_categ": "Monumentos e Locais de Interesse", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "Edif\u00edcio cuja constru\u00e7\u00e3o se iniciou c. de 1159 ap\u00f3s a restaura\u00e7\u00e3o da diocese de Lamego em 1147, com a nomea\u00e7\u00e3o de D. Mendo.\r\nDeste per\u00edodo, apenas na torre que flanqueia a fachada a sul, podemos encontrara alguns vest\u00edgios.\r\nDe planta quadrangular assente sobre pronunciado embasamento, desenvolve-se em tr\u00eas registos, sendo o \u00faltimo uma tardia reconstru\u00e7\u00e3o do original. Nela se destacam as estreitas frestas e as janelas com arco de volta perfeita e pequenos colunelos.\r\n  Reconstru\u00edda entre o s\u00e9culo XV \u2013 XVI, apresenta quer na sua concep\u00e7\u00e3o espacial, quer no seu al\u00e7ado uma gram\u00e1tica marcada pelo g\u00f3tico flamejante, com a presen\u00e7a de t\u00edmidos elementos renascentistas.\r\nA fachada principal, objeto da campanha de obras ocorrida entre 1508-1515 com risco do arquiteto Jo\u00e3o Lopes, desenvolve-se em tr\u00eas panos definidos por pesados contrafortes rematados por pin\u00e1culos cogulhados. O piso t\u00e9rreo abre-se por p\u00f3rtico central ladeado por dois id\u00eanticos de menores dimens\u00f5es, rematados por arcos ogivais constitu\u00eddos por arquivoltas assentes em colunelos ornados de elementos vegetalistas, zoom\u00f3rficos e antropom\u00f3rficos, onde se desenvolve o imagin\u00e1rio medievo marcado por um simbolismo que evidencia a separa\u00e7\u00e3o entre o bem e o mal, o sagrado e o profano. \r\n A norte destaca-se o corpo do claustro do s\u00e9c. XVI, com dois registos, sendo o primeiro constitu\u00eddo por arcadas, com arcos de volta perfeita e o superior com s\u00f3brio varandim. \r\nO interior apresenta uma planta de tr\u00eas naves dividas por tr\u00eas tramos, transepto e cabeceira. O teto em abobada de aresta sustentada por arcos de volta perfeita e grossos pilares. De registar os elementos barrocos, objecto das obras de requalifica\u00e7\u00e3o sofridas no s\u00e9culo XVIII, das quais se destacam as pinturas perspectivadas de Nicolau Nasoni, onde a narrativa b\u00edblica ganha vida em din\u00e2micos enquadramentos arquitect\u00f3nicos e elementos vegetalistas, bem como a talha dourada que invade todas as estruturas retabulares, da capela mor aos ret\u00e1bulos das v\u00e1rias capelas que circundam o espa\u00e7o, dando express\u00e3o ao barroco nacional, joanino e rococ\u00f3.\r\nDo seu recheio destacam-se o frontal de prata do altar principal da capela do Sant\u00edssimo, obra de ourives portuense do terceiro quartel do s\u00e9c. XVIII, dos \u00f3rg\u00e3os, obra de Francisco Ant\u00f3nio Solha, o cadeiral e o p\u00falpito tamb\u00e9m em talha. \r\nNo Claustro podem observar-se as capelas quinhentistas de Santo Ant\u00f3nio e de S\u00e3o Nicolau, ambas do s\u00e9culo XVI, ornadas de boa talha dourada e policromada, possuindo, esta \u00faltima, tamb\u00e9m interessantes pain\u00e9is de azulejos historiados onde se ilustra a vida de S\u00e3o Nicolau.\r\nA S\u00e9 de Lamego, referencia patrimonial da cidade, materializa no seu conjunto a sua antiguidade e percurso hist\u00f3rico, marcado pelas interven\u00e7\u00f5es sofridas, pelo gosto e solu\u00e7\u00f5es t\u00e9cnicas de cada \u00e9poca, bem como o cunho de prelados com meios e vontade f\u00e9rrea, dos quais se destacaram, no s\u00e9culo XVI, D. Jo\u00e3o Camelo de Madureira (1502-1513), D. Fernando de Menezes Coutinho e Vasconcelos (1513-1540) e D. Manuel de Noronha (1551-1569) e, no s\u00e9culo XVIII, D. frei Feliciano de Nossa Senhora (1743-1771) e D. Manuel de Vasconcelos Pereira (1773-1786).", 
+      "poi_lat": 41.096537, 
+      "poi_lon": -7.806697, 
+      "poi_name": "S\u00e9 Catedral de Lamego", 
+      "source": "http://www.patrimoniocultural.gov.pt/pt/\r\nhttp://www.cm-lamego.pt/patrimonio/igrejas-e-conventos\r\nhttp://www.douroalliance.org/gabineteturismo/", 
+      "trip_distance": 1329.5, 
+      "trip_duration": 197.6
+    }, 
+    {
+      "id": 81, 
+      "images": [
+        "http://172.121.100.104/static/uploads/512px_IMG_4582.JPG", 
+        "http://172.121.100.104/static/uploads/512px_IMG_3873.JPG", 
+        "http://172.121.100.104/static/uploads/512px_DSC_7605_web.jpg"
+      ], 
+      "poi_categ": "Museus", 
+      "poi_conc": "Lamego", 
+      "poi_descript": "O Museu de Lamego est\u00e1 situado no centro da cidade, pr\u00f3ximo da catedral, de fronte para o santu\u00e1rio de Nossa Senhora dos Rem\u00e9dios.\r\nCriado no contexto do ide\u00e1rio republicano, por decreto de 5 de Outubro de 1917, abriu ao p\u00fablico a 21 de Maio do ano seguinte, tendo sido seu primeiro diretor o artista lamecense \u2013 Jo\u00e3o Amaral. \r\nOcupa o edif\u00edcio do antigo Pa\u00e7o Episcopal, reconstru\u00eddo no s\u00e9culo XVI pelo bispo D. Fernando de Menezes Coutinho e Vasconcelos (1513-1540).\r\n Cerca de 200 anos depois outro prelado da diocese, D. Manuel de Vasconcelos Pereira (1773-1786), procedeu \u00e0 sua requalifica\u00e7\u00e3o, conferindo-lhe o gosto da \u00e9poca, bem presente na sua fachada. Composta de tr\u00eas corpos, o central rasgado por portal armoriado, com o bras\u00e3o do bispo e dois corpos laterais rasgados por v\u00e3os, correspondendo ao 1\u00ba piso janelas de avental encimadas por front\u00f5es curvil\u00edneos. No centro dos dois corpos decantam-se duas janelas de sacada \u00e0s quais correspondem dois varandins com bala\u00fastres que refor\u00e7am a horizontalidade do edif\u00edcio, definida pela longa cornija, ainda que em conseguido equil\u00edbrio conferido pelo ritmo dos v\u00e3os e a verticalidade das pilastras.\r\nNo seu acervo, rico e diversificado, na natureza, cronologias e proveni\u00eancia, destacam-se as Colec\u00e7\u00f5es de Arqueologia, Epigrafia, Mobili\u00e1rio, Tape\u00e7aria, Pintura, Escultura e Pintura Religiosa, Paramentaria, Artes Decorativas, Fotografia e Etnografia.\r\n De salientar a import\u00e2ncia do esp\u00f3lio do Pa\u00e7o Episcopal, da S\u00e9 e do extinto convento das Chagas, com o conjunto not\u00e1vel de tape\u00e7arias flamengas do inicio do s\u00e9c. XVI; as cinco pinturas de Gr\u00e3o Vasco, que constitu\u00edram parte do ret\u00e1bulo da S\u00e9 e as capelas de S\u00e3o Jo\u00e3o Batista e de S\u00e3o Jo\u00e3o Evangelista que integravam o claustro do convento.\r\nMais recentemente diversas doa\u00e7\u00f5es e legados t\u00eam contribu\u00eddo de forma muito relevante para o enriquecimento do Museu, dos quais \u00e9 justo salientar as doa\u00e7\u00f5es de Fausto Guedes Teixeira, Jo\u00e3o Amaral, de Humberto Leit\u00e3o, Ema Guedes Teixeira Vieira de Magalh\u00e3es, Jo\u00e3o de Almeida, Raul Videira Xavier de Morais Sarmento, Ant\u00f3nio Rodrigues Tavares e dos herdeiros do Monsenhor Correia de Noronha, entre muitos outros, e os legados de Vasco de Vasconcelos e de Ana Maria Pereira da Gama. \r\nO Esp\u00f3lio Documental da Biblioteca do antigo Pa\u00e7o Episcopal, ou os Fundos da Igreja de S\u00e3o Pedro de Balsem\u00e3o, dos da Associa\u00e7\u00e3o dos Bombeiros Volunt\u00e1rios de Lamego ou do Registo Civil, ou os cerca de 8000 volumes que constituem o acervo da Biblioteca s\u00e3o uma mais valia para a comunidade onde o museu se insere.", 
+      "poi_lat": 41.097407, 
+      "poi_lon": -7.806235, 
+      "poi_name": "Museu de Lamego", 
+      "source": "http://www.museudelamego.pt/", 
+      "trip_distance": 1430, 
+      "trip_duration": 215.1
+    }
+  ], 
+  "status": "OK", 
+  "timestamp": 1552909764.0945816
+}</pre> 
                             </div>
                         </div>
                     </div>
@@ -1988,6 +2470,3 @@ O resultado final será uma lista com os dados importantes sobre a rota, em form
             </script>
         
         {% endblock %}
-
-
-

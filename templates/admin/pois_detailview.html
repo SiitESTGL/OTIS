@@ -68,31 +68,33 @@
         <div class="row text-info">
             <div class="col-md-6">
                 <h4>{{ poi.poi_name | title }}(<b>{{ categoryname | capitalize }}</b>)</h4>
-                Last Updated: {{ last_update }}
+                Last Updated: {{ last_update }}<br>
+				<h5><b>Avarage visit time:</b> {{ convertdecimaltotime(poi_vdura)}} h; <b>Visit score: </b> {{ poi.poi_score }}</h5>
             </div>
             <div class="h5">Reads
-                <input type="radio" name="descript" value="1">Language1
-                <input type="radio" name="descript" checked="checked" value="0">Language2
+                <input type="radio" name="descript" value="1">Portugues
+                <input type="radio" name="descript" checked="checked" value="0">English
             </div>
         </div>
+
         <hr>
 
         <div class="row">
 	    <div class="col-md-4">
 		{% if img.original_img|length > 0 %}
-		     <img src="/static/uploads/{{ img.original_img }}" class="img-thumbnail" alt="" width="300" height="200"/>
+		     <img src="/static/uploads/512px_{{ img.original_img }}" class="img-thumbnail" alt="" width="300" height="200"/>
         {% else %}
              <img src="/static/uploads/300x200.png" class="img-thumbnail" alt="" width="300" height="200"/>
                 {% endif %}
 	    </div>
             <div class="col-md-8">
                 <div id="read_description_pt" class="read" style="display: none">
-                    <p class="text-justify"> <strong>Short description Language1:</strong> {{ poi.poi_descri_pt_short }}</p>
-                    <p class="text-justify"> <strong>Long description Language1:</strong> {{ poi.poi_descri_pt_long }}</p>
+                    <p class="text-justify"> <strong>Descrição curta:</strong> {{ poi.poi_descri_pt_short }}</p>
+                    <p class="text-justify"> <strong>Descrição longa:</strong> {{ poi.poi_descri_pt_long }}</p>
                 </div>
                 <div id="read_description_en" class="read" style="display: block">
-                    <p class="text-justify"> <strong>Short description Language2:</strong>: {{ poi.poi_descri_en_short }}</p>
-                    <p class="text-justify"> <strong>Long description Language2:</strong>: {{ poi.poi_descri_en_long }}</p>
+                    <p class="text-justify"> <strong>Short description</strong>: {{ poi.poi_descri_en_short }}</p>
+                    <p class="text-justify"> <strong>Long description</strong>: {{ poi.poi_descri_en_long }}</p>
                 </div>
             </div>
 
@@ -104,18 +106,27 @@
             </div>
             <div class="text-info col-md-4">
                 <h4>Schedule and Contacts Info</h4><hr>
+				
+				{% if poi_open_or_close == 0  %}
+					<b>POI is Close</b>
+				{% else %}
+					<b>POI is Open</b>
+				{% endif %}<br>
 
-                <b>Open:</b>
-                {% for item in poi.poi_schedule %}
+				{% if poi.poi_future_review == 0  %}
+					The POI does not have a schedule<br>
+				{% else %}
+					The POI has schedule<br>
+					<b>Open:</b>
+					{% for item in poi.poi_schedule %}
                         {{ convertdecimaltotime(item.poi_open_h) }},
-                {% endfor %}
+					{% endfor %}<br>
 
-                <br>
-
-                <b>Close:</b>
-                     {% for item in poi.poi_schedule %}
-                    {{ convertdecimaltotime(item.poi_close_h) }},
-                {% endfor %}<br>
+					<b>Close:</b>
+						{% for item in poi.poi_schedule %}
+							{{ convertdecimaltotime(item.poi_close_h) }},
+						{% endfor %}<br>
+				{% endif %}
 
                 {% if contact.telephone %}
                     <b>Telephone:</b> {{ contact.telephone }}<br>
@@ -129,10 +140,34 @@
                 {% if poi.poi_address  %}
                     <b>Address:</b> {{ poi.poi_address}}<br>
                 {% endif %}
+				
+				{% if countyname  %}
+                    <b>Sub-region:</b> {{ countyname}}<br>
+                {% endif %}
+				
+                {% if poi.poi_lat  %}
+                    <b>Latitude:</b> {{ poi.poi_lat}}<br>
+                {% endif %}
+				
+				{% if poi.poi_lon  %}
+                    <b>Longitude:</b> {{ poi.poi_lon}}<br>
+                {% endif %}
 
                 {% if contact.website %}
                     <b>Website:</b> <a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a><br>
                 {% endif %}
+				
+				{% if poi.poi_review == 0  %}
+					The POI is not reviewed
+				{% else %}
+					The POI is reviewed
+				{% endif %}<br>
+				
+				{% if poi.poi_en_review == 0  %}
+					The english is not reviewed
+				{% else %}
+					The english is reviewed
+				{% endif %}<br>
 
                 {% if poi.poi_notes %}
                     <hr>
@@ -143,10 +178,17 @@
                        <hr>
                     <h4>Information Sources</h4>{{ poi.poi_source }}
                 {% endif %}
+				
              <hr>
             </div>
         </div>
-    </div>
+		<div style="padding-top: 10px">
+			<a href="{{ url_for('.detailview_pois', poi_id = bt_prev) }}" ><button type="button" class="edit_poi" {% if poi.id <= min_id %}disabled{% endif %}>Previous</button></a>
+			<a href="{{ url_for('.edit_pois', poi_id = poi.id) }}" target="_blank"><button type="button" class="edit_poi">Edit</button></a>
+			<a href="{{ url_for('.delete_pois', poi_id = poi.id) }}"><button type="button" class="delete_poi">Delete</button></a>
+			<a href="{{ url_for('.detailview_pois', poi_id = bt_next) }}" ><button type="button" class="edit_poi" {% if poi.id >= max_id %}disabled{% endif %}>Next</button></a>
+		</div>
+	</div>
 
 {% endblock %}
 

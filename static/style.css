@@ -1,0 +1,23 @@
+/* Map */
+
+.Douromap {
+    height: 600px;
+    width: 95%;
+padding: 50px 0;
+
+}
+
+.mapcontainer {
+    height: 500px;
+    width: 100%;
+}
+
+
+body { font-family: sans-serif; }
+
+.mybtn-lg{
+  padding: 10px 16px;
+  font-size: 50px;
+  line-height: 1.33;
+  border-radius: 6px;
+}

@@ -219,6 +219,110 @@ def read_POIS_info2(categ_id):
 
     return json.dumps(poi_info)
 
+# select all POI if categ_id == all, else select POI its category, regardless of whether the POI is finished
+def read_POIS_info3(categ_id):
+    poi_info = []
+    if categ_id == "all":
+
+        info = POIS.query.order_by(POIS.poi_score.desc()).all()
+
+        for item in info:
+            poi_open_h2 = []
+            poi_close_h2 = []
+            poi_dura = []
+            poi_phone = []
+            poi_email = []
+            poi_website = []
+            poi_orig_img = []
+            poi_copy_img = []
+            
+            if item.category_id:
+                categ_info = Category.query.get(item.category_id)
+                category = categ_info.categ_name_pt
+                category_id = categ_info.categ_id
+            else:
+                category_id = 11
+                categ_info = Category.query.get(category_id)
+                category = categ_info.categ_name_pt
+                
+            if item.concelho_id:
+                conc_info = Concelho.query.get(item.concelho_id)
+                concelho = conc_info.conc_name
+                concelho_id = conc_info.conc_id     
+            else:
+                concelho_id = 20
+                conc_info = Concelho.query.get(concelho_id)
+                concelho = conc_info.conc_name
+
+            for item2 in item.poi_schedule:
+                poi_open_h_sec = item2.poi_open_h
+                poi_open_h = decimal_second_to_hms(float(item2.poi_open_h))
+                poi_close_h_sec = item2.poi_close_h
+                poi_close_h = decimal_second_to_hms(item2.poi_close_h)
+                POI_dura_sec = item2.poi_vdura
+                poi_vdura = decimal_second_to_hms(item2.poi_vdura)
+                poi_open_h2.append(poi_open_h)
+                poi_close_h2.append(poi_close_h)
+                if len (poi_dura)<1:
+                    poi_dura.append(poi_vdura)
+            
+            for item2 in item.poi_contact:
+                poi_phone.append(item2.telephone)
+                poi_email.append(item2.email)
+                poi_website.append(item2.website)
+            
+            for item2 in item.poi_image:
+                poi_orig_img.append(item2.original_img)
+                poi_copy_img.append(item2.copy_img)
+            
+            poi_info.append({
+                "poi_id" : item.id,
+                "poi_name": item.poi_name,
+                "poi_lat": item.poi_lat,
+                "poi_lon": item.poi_lon,
+                "poi_category": category,
+                "category_id": category_id,
+                "poi_score": item.poi_score,
+                "poi_concelho": concelho,
+                "concelho_id": concelho_id,
+                "poi_descript_pt": item.poi_descri_pt_short,
+                "poi_descript_en": item.poi_descri_en_short,
+                "address": item.poi_address,
+                "poi_open_h_sec":poi_open_h_sec,
+                "poi_open_h": poi_open_h2,
+                "poi_close_h_sec": poi_close_h_sec,
+                "poi_close_h": poi_close_h2,
+                "poi_dura_sec": POI_dura_sec,
+                "poi_dura": poi_dura,
+                "poi_phone": poi_phone,
+                "poi_email": poi_email,
+                "poi_website": poi_website,
+                "poi_orig_img": poi_orig_img,
+                "poi_copy_img": poi_copy_img,
+                "poi_review": item.poi_review
+            })
+    else:
+        info = POIS.query.with_entities(POIS).filter(POIS.category_id == categ_id)
+        for item in info:
+            category = ""
+            category_id = None
+            categ_info = Category.query.get(item.category_id)
+            if categ_info:
+                category = categ_info.categ_name_en
+                category_id = categ_info.categ_id
+            flash("neste")
+            poi_info.append({
+                "poi_name": item.poi_name,
+                "poi_lat": item.poi_lat,
+                "poi_lon": item.poi_lon,
+                "poi_category": category,
+                "category_id": category_id,
+                "poi_descript_pt": item.poi_descri_pt_short,
+                "poi_review": item.poi_review
+            })
+
+    return json.dumps(poi_info)
+
 #Function to read the DB for route info and return it
 
 def read_route_info():

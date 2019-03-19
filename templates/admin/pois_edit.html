@@ -7,8 +7,8 @@
 
     <style>
 
-.my-error-class {
-    color:#FF0000;  /* red */
+	.my-error-class {
+		color:#FF0000;  /* red */
     }
     .my-valid-class {
         color:#00CC00; /* green */
@@ -22,6 +22,10 @@
         <div class="panel panel-primary col-md-10">
             <div class="panel-heading">
                 <h3 class="panel-title">Edit POI</h3>
+				<div style="float: right">
+					<a href="{{ url_for('.edit_pois', poi_id = bt_prev) }}" ><button type="button" class="edit_poi" {% if poi.id <= min_id %}disabled{% endif %}>Previous</button></a>
+					<a href="{{ url_for('.edit_pois', poi_id = bt_next) }}" ><button type="button" class="edit_poi" {% if poi.id >= max_id %}disabled{% endif %}>Next</button></a>
+				</div>
             </div>
 
             <div class="panel-body">
@@ -77,16 +81,13 @@
                         <div class="col-md-6">
                             <select class="form-control" id="select_categ" name="select_categ">
                                 <option selected disabled>-Select One-</option>
-
                                 {% for c in categ %}
                                     {% if c.categ_id  == poi.category_id %}
-                                        <option value="{{ poi.category_id }}" selected="selected">{{ c.categ_name_pt }}</option>
-
+                                        <option value="{{ poi.category_id }}" selected="selected">{{ c.categ_name_pt|capitalize }}</option>
                                     {% else %}
-                                        <option value="{{ c.categ_id }}">{{ c.categ_name_pt }}</option>
+                                        <option value="{{ c.categ_id }}">{{ c.categ_name_pt|capitalize }}</option>
                                     {% endif %}
                                 {% endfor %}
-
                             </select>
                         </div>
                         <div class="col-md-4" id="new_category" style="display:none;">
@@ -95,17 +96,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="name" class="col-md-2 control-label">County</label>
+                        <label for="name" class="col-md-2 control-label">Sub-region</label>
                         <div class="col-md-6">
                             <select class="form-control" id="select_conc" name="select_conc">
                                 <option selected disabled>-Select One-</option>
-
                                 {% for c in conc %}
                                     {% if c.conc_id  == poi.concelho_id %}
-                                        <option value="{{ poi.concelho_id }}" selected="selected">{{ c.conc_name }}</option>
-
+                                        <option value="{{ poi.concelho_id }}" selected="selected">{{ c.conc_name|capitalize }}</option>
                                     {% else %}
-                                        <option value="{{ c.conc_id }}">{{ c.conc_name }}</option>
+                                        <option value="{{ c.conc_id }}">{{ c.conc_name|capitalize }}</option>
                                     {% endif %}
                                 {% endfor %}
 
@@ -118,11 +117,9 @@
                         <div class="col-md-2">
                             <select class="form-control" id="select_score" name="select_score">
                                 <option selected disabled>-Select One-</option>
-
                                 {% for i in range(1, 11) %}
                                     {% if i == poi.poi_score %}
                                         <option value="{{ poi.poi_score }}" selected="selected">{{ poi.poi_score}}</option>
-
                                     {% else %}
                                         <option value="{{ i }}">{{ i }}</option>
                                     {% endif %}
@@ -134,58 +131,16 @@
 
 
                     <div class="form-group">
-                        <label for="lat_degree" class="col-md-2 control-label">Latitude</label>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="lat_degree" name="lat_degree" value="{{ convert_decimalto_dms(poi.poi_lat).get("degree")}}" placeholder="Degree" >
-                        </div>
-
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="lat_minute" name="lat_minute" value="{{ convert_decimalto_dms(poi.poi_lat).get("minute")}}" placeholder="Minutes">
-                        </div>
-
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="lat_second" name="lat_second" value="{{ convert_decimalto_dms(poi.poi_lat).get("second")}}" placeholder="Seconds">
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-control" id="lat_direction" name="lat_direction">
-                                <option selected disabled>-Direction-</option>
-                                {% if convert_decimalto_dms(poi.poi_lat).get("direction_state") %}
-                                    <option value="n" selected="selected">North</option>
-                                    <option value="s">South</option>
-                                {% else %}
-                                    <option value="s" selected="selected">South</option>
-                                    <option value="n">North</option>
-                                {% endif %}
-
-                            </select>
+                        <label for="lat_decimal" class="col-md-2 control-label">Latitude</label>
+						<div class="col-md-4">
+                            <input type="number" class="form-control" id="lat_decimal" name="lat_decimal" value="{{ poi.poi_lat }}" placeholder="Decimal Latitude" >
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="long_degree" class="col-md-2 control-label">Longitude</label>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="long_degree" name="long_degree" value="{{ convert_decimalto_dms(poi.poi_lon).get("degree")}}" placeholder="Degree">
-                        </div>
-
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="long_minute" name="long_minute" value="{{ convert_decimalto_dms(poi.poi_lon).get("minute")}}" placeholder="Minutes">
-                        </div>
-
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" id="long_second" name="long_second" value="{{ convert_decimalto_dms(poi.poi_lon).get("second")}}" placeholder="Seconds">
-                        </div>
-
-                        <div class="col-md-2">
-                            <select class="form-control" id="long_direction" name="long_direction">
-                                <option selected disabled>-Direction-</option>
-                                {% if convert_decimalto_dms(poi.poi_lon).get("direction_state") %}
-                                    <option value="e" selected="selected">East</option>
-                                    <option value="w">West</option>
-                                {% else %}
-                                    <option value="w" selected="selected">West</option>
-                                    <option value="e">East</option>
-                                {% endif %}
-                            </select>
+                        <label for="long_decimal" class="col-md-2 control-label">Longitude</label>
+						<div class="col-md-4">
+                            <input type="number" class="form-control" id="long_decimal" name="long_decimal" value="{{ poi.poi_lon }}" placeholder="Decimal Longitude" >
                         </div>
                     </div>
 
@@ -231,6 +186,20 @@
                         </div>
                     </div>
 
+					<div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Does POIS have a schedule?</label>
+                        {% if poi.poi_future_review == 0 %}
+                        <div class="col-md-4">
+                           <input type="radio" id="poistate_radio_fut_1" name="poistate_radio_fut" value="1">Yes
+                           <input type="radio" id="poistate_radio_fut_0" name="poistate_radio_fut" value="0" checked>No
+                        </div>
+                        {% else %}
+                        <div class="col-md-4">
+                           <input type="radio" id="poistate_radio_fut_1" name="poistate_radio_fut" value="1" checked>Yes
+                           <input type="radio" id="poistate_radio_fut_0" name="poistate_radio_fut" value="0">No
+                        </div>
+                        {% endif %}
+                    </div>
 
                     <div class="form-group">
                         <label for="poi_open_edit" class="col-md-2 control-label">Open/close Hours</label>
@@ -245,7 +214,7 @@
                                   <input type="text" class="form-control" id="poi_close_edit" name="poi_close[]" value="{{ convertdecimaltotime(default_hour[1])}}" placeholder="close Hour" >
                                 </div>
 
-                                <button type="button" class="addNewField_btn btn-primary">Add New Field</button>
+                                <button type="button" id="button_addnew" class="addNewField_btn btn-primary">Add New Field</button>
                             </div> <!-- End form Group -->
                         {% endfor %}
                     </div>
@@ -264,16 +233,60 @@
                                 <div class="col-md-2">
                                    <input type="text"  class="selectime form-control" id="time_poi_close" name="poi_close[]" value="{{ convertdecimaltotime(info[1]) }}">
                                 </div>
-                                <a href="#"><button type="button" class="remove_field btn-primary">Remove</button></a>
+                                <a href="#" id="time_poi_remove" <button type="button" class="remove_field btn-primary">Remove</button></a>
                             </div>
                         {% endfor %}
                     </div>
 
                     <div class="form-group">
                         <label for="visitduration" class="col-md-2 control-label">Duration of Visit</label>
+						
+						{% for durationvisit in duration_visit %}
+						
                         <div class="col-md-2">
-                            <input type="text" class="form-control" id="visitduration" name="visitduration" value="{% for durationvisit in duration_visit %}{{ convertdecimaltotime(durationvisit) }}{% endfor %}">
+                            <!--<input type="text" class="form-control" id="visitduration" name="visitduration" value="{% for durationvisit in duration_visit %}{{ convertdecimaltotime(durationvisit) }}{% endfor %}">-->
+							<select id="visitduration" name="visitduration" class="form-control" >
+								<option value="0:01" {% if durationvisit == 60 %} selected="selected" {% endif %}>0:01</option>
+								<option value="0:02" {% if durationvisit == 120 %} selected="selected" {% endif %}>0:02</option>
+								<option value="0:03" {% if durationvisit == 180 %} selected="selected" {% endif %}>0:03</option>
+								<option value="0:04" {% if durationvisit == 240 %} selected="selected" {% endif %}>0:04</option>
+								<option value="0:05" {% if durationvisit == 300 %} selected="selected" {% endif %}>0:05</option>
+								<option value="0:10" {% if durationvisit == 600 %} selected="selected" {% endif %}>0:10</option>
+								<option value="0:15" {% if durationvisit == 900 %} selected="selected" {% endif %}>0:15</option>
+								<option value="0:20" {% if durationvisit == 1200 %} selected="selected" {% endif %}>0:20</option>
+								<option value="0:25" {% if durationvisit == 1500 %} selected="selected" {% endif %}>0:25</option>
+								<option value="0:30" {% if durationvisit == 1800 %} selected="selected" {% endif %}>0:30</option>
+								<option value="0:45" {% if durationvisit == 2700 %} selected="selected" {% endif %}>0:45</option>
+								<option value="1:00" {% if durationvisit == 3600 %} selected="selected" {% endif %}>1:00</option>
+								<option value="1:15" {% if durationvisit == 4500 %} selected="selected" {% endif %}>1:15</option>
+								<option value="1:30" {% if durationvisit == 5400 %} selected="selected" {% endif %}>1:30</option>
+								<option value="1:45" {% if durationvisit == 6300 %} selected="selected" {% endif %}>1:45</option>
+								<option value="2:00" {% if durationvisit == 7200 %} selected="selected" {% endif %}>2:00</option>
+								<option value="2:30" {% if durationvisit == 9000 %} selected="selected" {% endif %}>2:30</option>
+								<option value="3:00" {% if durationvisit == 10800 %} selected="selected" {% endif %}>3:00</option>
+								<option value="3:30" {% if durationvisit == 12600 %} selected="selected" {% endif %}>3:30</option>
+								<option value="4:00" {% if durationvisit == 14400 %} selected="selected" {% endif %}>4:00</option>
+							</select>
                         </div>
+
+						{% endfor %}
+                </div>
+
+				<div class="form-group">
+                    <label for="name" class="col-md-2 control-label">Open / Close?</label>
+                    <div class="col-md-5">
+                        {% if poi_open_or_close == 0 %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="typeradio_poi" value="1">Yes
+                           <input type="radio"  name="typeradio_poi" value="0" checked>No
+                        </div>
+                        {% else %}
+                        <div class="col-md-4">
+                           <input type="radio"  name="typeradio_poi" value="1" checked>Yes
+                           <input type="radio"  name="typeradio_poi" value="0">No
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                         <div class="form-group">
@@ -290,27 +303,23 @@
                           <div class="col-sm-3" id="imageContainer">
                               <img src="{{ url_for('static', filename='uploads/256px_' + img[1]) }}"
                             class="img-thumbnail" alt="" width="150" height="100"/>
-
-                        
-                         </div>
+                          </div>
                                 <a href="{{ url_for('images.delete_image_edit', img_id = img[0]) }}"><button type="button" class="Deleteimg_btn btn-primary">Delete image</button></a>
   
-
                         {% endfor %}
                     </div>
 
                     <div class="form-group">
                         <label for="img_file" class="col-md-2 control-label">Image</label>
                         <div class="col-md-4">
-                            <input type="file" class="file-upload"  id="imagefile" name="imagefile[]" >
+                            <input type="file" class="file-upload"  id="imagefile" name="imagefile[]" > <!-- accept all images -->
                         </div>
                         <div class="col-sm-4" id="imageContainer" ></div>
                         <button type="button" class="addNewimgField_btn btn-primary">Add New Field</button>
                     </div>
+                            
                     <!-- ADD Dynamic Fields Here-->
-                    <div class="form-group new_img_field ">
-
-                    </div>
+                    <div class="form-group new_img_field "></div> 
                             
                     <div class="form-group">
                     <label for="name" class="col-md-2 control-label">Is POI complete?</label>
@@ -342,20 +351,6 @@
                         {% endif %}
                     </div>
                             
-                    <div class="form-group">
-                    <label for="name" class="col-md-2 control-label">Has it been reviewed?</label>
-                        {% if poi.poi_future_review == 0 %}
-                        <div class="col-md-4">
-                           <input type="radio"  name="poistate_radio_fut" value="1">Yes
-                           <input type="radio"  name="poistate_radio_fut" value="0" checked>No
-                        </div>
-                        {% else %}
-                        <div class="col-md-4">
-                           <input type="radio"  name="poistate_radio_fut" value="1" checked>Yes
-                           <input type="radio"  name="poistate_radio_fut" value="0">No
-                        </div>
-                        {% endif %}
-                    </div>
                     <div class="col-md-offset-4 col-md-8">
                         <button type="submit" class="btn btn-primary">Update</button>
                         <a href="{{ url_for('.list_pois') }}"><button type="button" class="btn btn-primary">Cancel</button></a>
@@ -372,6 +367,6 @@
     <script src="/static/js/jquery.validate.js"></script>
     <script src="/static/js/jquery.timepicker.js"></script>
 
-    <!-- Project Script -->
+    <!-- Our Script -->
     <script src="/static/pois_edit.js"></script>
 {% endblock %}

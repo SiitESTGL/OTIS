@@ -18,7 +18,7 @@ from functools import wraps
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_limiter import Limiter
 
-import ILS_testes_m_final_py3
+import ILS_testes_m_final_cpy3 as ILS
 
 #-----------------------------------------------------------------
 #API Variables
@@ -96,160 +96,65 @@ def get_specific_poi_id(poi_id, task_id):
     return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
 
 #-----------------------------------------------------------------
-#Get info on points belonging to a certain category
-
-def get_specific_category(category, task_id):
-    
-    #Query that grabs POIs from the database based on if they match with the requested category id 
-    poi = POIS.query.filter(POIS.category_id == category, POIS.poi_review == True).all()
-    
-    #Returns 404 if no pois are found
-    if len(poi) == 0:
-        raise InvalidUsage(nothing_error, task_id, status_code=404) 
-    
-    #Column that contains the dictionary keys
-    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descri_pt_short", "images", "source"]
-    info_poi =[];
-    
-    #Grabs the category name from the requested category ID
-    category = Category.query.get(category)
-    if category:
-        categoryname = category.categ_name_pt
-    else:
-        categoryname = ""
-        
-    #cycles the results of the POI query in order to build a list with the results
-    for item in poi:
-        
-        #Grabs the concelho/municipality name from the POI's concelho ID
-        if item.concelho_id:
-            concelho = Concelho.query.get(int(item.concelho_id))
-            if concelho:
-                concelhoname = concelho.conc_name
-            else:
-                concelhoname = ""
-        else:
-            concelhoname = ""
-            
-        #Grabs all the images belonging to the POI    
-        images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
-        images = []
-        if images_db:
-            for item2 in images_db:
-                images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
-        else:
-            images = ""
-            
-        #Appends the information from this POI to the list
-        info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                              item.poi_lat, item.poi_lon,
-                                              categoryname,
-                                              concelhoname,
-                                              item.poi_descri_pt_short,
-                                              images,
-                                              item.poi_source])))
-        
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-
-#-----------------------------------------------------------------
-#Get points belonging to a certain concelho
-
-def get_specific_concelho(concelho, task_id):
-    
-    #Query that grabs POIs from the database based on if they match with the requested concelho id 
-    poi = POIS.query.filter(POIS.concelho_id == concelho, POIS.poi_review == True).all()
-    
-    #Returns 404 if no pois are found
-    if len(poi) == 0:
-        raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
-        
-    #Column that contains the dictionary keys    
-    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
-    info_poi =[];
-    
-    #Grabs the concelho name from the requested concelho ID
-    concelho = Concelho.query.get(concelho)
-    if concelho:
-        concelhoname = concelho.conc_name
-    else:
-        concelhoname = ""
-    
-    #cycles the results of the POI query in order to build a list with the results
-    for item in poi:
-        
-        #Grabs the category name from the POI's category ID
-        category = Category.query.get(int(item.category_id))
-        if category:
-            categoryname = category.categ_name_pt
-        else:
-            categoryname = ""
-        
-        #Grabs all the images belonging to the POI
-        images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
-        images = []
-        if images_db:
-            for item2 in images_db:
-                images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
-        else:
-            images = ""
-            
-        #Appends the information from this POI to the list
-        info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                              item.poi_lat, item.poi_lon,
-                                              categoryname,
-                                              concelhoname,
-                                              item.poi_descri_pt_short,
-                                              images,
-                                              item.poi_source])))
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-
-#-----------------------------------------------------------------
 #Get points belonging to a certain category AND concelho
+def get_specific_cat_conc_b(category, concelho, task_id, num_poi=None, score=None):
+    
+    #Construct the query that grabs POIs from the database based on if they match with the requested category ID and concelho ID
+    query_ini = 'SELECT pois.id, pois.poi_name, pois.poi_lat, pois.poi_lon, category.categ_name_pt, concelhos.conc_name, pois.poi_descri_pt_short, pois.poi_source FROM pois, category, concelhos'
 
-def get_specific_cat_conc(category, concelho, task_id):
-    
-    #Query that grabs POIs from the database based on if they match with the requested category ID and concelho ID
-    poi = POIS.query.filter(POIS.category_id == category, POIS.concelho_id == concelho, POIS.poi_review == True).all()
-    
-    #Returns 404 if no POIs are found
-    if len(poi) == 0:
+    query_where = ' WHERE pois.category_id = category.categ_id AND pois.concelho_id = concelhos.conc_id'
+
+    if category:
+        query_where = query_where + ' AND pois.category_id = '+str(category)
+
+    if concelho:
+        query_where = query_where + ' AND pois.concelho_id = '+str(concelho)
+
+    if score and int(score) > 0:
+        query_where = query_where + ' AND pois.poi_score >= '+str(score)
+
+    query_orderby = ' ORDER BY pois.poi_score DESC'
+
+    if num_poi: query_limit = ' LIMIT '+str(num_poi)
+    else: query_limit = ''
+
+    query = query_ini+query_where+query_orderby+query_limit
+
+    print(query)
+
+    result = db.engine.execute(query).fetchall()
+
+    if not result:
         raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
-        
+
     #Column that contains the dictionary keys
     column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
-    info_poi =[];
-    
-    #Grabs the category and concelho/municipality names from the requested category ID and concelho ID
-    category = Category.query.get(category)
-    if category:
-        categoryname = category.categ_name_pt
-    else:
-        categoryname = ""
-    concelho = Concelho.query.get(concelho)
-    if concelho:
-        concelhoname = concelho.conc_name
-    else:
-        concelhoname = ""
-        
+    info_poi =[]
+
     #cycles the results of the POI query in order to build a list with the results
-    for item in poi:
-        images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
+    for row in result:
+        query_image = 'SELECT original_img FROM images WHERE poi_id = ' +str(row['id'])
+        result_image = list(db.engine.execute(query_image).fetchall())
         images = []
-        if images_db:
-            for item2 in images_db:
-                images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+        if result_image:
+            for i in result_image:
+                images.append( request.host_url + 'static/uploads/512px_'+ str(i[0]))
         else:
             images = ""
-        info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                              item.poi_lat, item.poi_lon,
-                                              categoryname,
-                                              concelhoname,
-                                              item.poi_descri_pt_short,
-                                              images,
-                                              item.poi_source])))
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
+                    
+        info_poi.append(dict(zip(column, [row['id'], row['poi_name'],
+                                                  row['poi_lat'], row['poi_lon'],
+                                                  row['categ_name_pt'],
+                                                  row['conc_name'],
+                                                  row['poi_descri_pt_short'],
+                                                  images,
+                                                  row['poi_source']
+                                             ])))
+    
+    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id) 
 
-def calculate_poi_distance(in_lat, in_lon, poi):
+#-----------------------------------------------------------------
+def calculate_poi_distance_b(in_lat, in_lon, poi_lat, poi_lon):
     """
             Calculate the distance between two POIS based on Latitude and Longitude
         this function uses the "Haversine" formula to calculate the great circle between to POIS.
@@ -260,21 +165,20 @@ def calculate_poi_distance(in_lat, in_lon, poi):
         :param in_lon: longitude type integer
         :return:
         """
-    lat1 = float(radians(in_lat))
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = radians(in_lon), radians(in_lat), radians(poi_lon), radians(poi_lat)   
 
     r = 6371  # in km
-    lat2 = radians(float(poi.poi_lat))
-    distan_lat = radians(lat2 - lat1)
-    distan_lon = radians(float(poi.poi_lon - in_lon))
-    a = (sin(distan_lat / 2)) ** 2 + cos(lat1) * cos(lat2) * (sin(distan_lon / 2)) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
     distance = r * c  # where  R is radius of the earth equal 6373 km & 3961 miles
     return distance
     
 #-----------------------------------------------------------------
-#Get points that are a certain distance from a pair of coordinates, can filter by category and/or concelho
-
-def get_close_points(lat,lon,distance, task_id, category=None, concelho=None):
+#Get points that are a certain distance from a pair of coordinates, can filter by category and/or concelho   
+def get_close_points_b(lat, lon, distance, task_id, category=None, concelho=None, num_poi=None, order=None):
     # load shapefile containing Portugal's shape
     poly = gpd.read_file('static/shapefiles/portugal.shp')
 
@@ -283,527 +187,883 @@ def get_close_points(lat,lon,distance, task_id, category=None, concelho=None):
 
     # check each polygon to see if it contains the point
     if poly.contains(point).bool():    
-        if category and concelho:
-            poi = POIS.query.filter(POIS.category_id == category, POIS.concelho_id == concelho, POIS.poi_review == True).all()
-        elif category:
-            poi = POIS.query.filter(POIS.category_id == category, POIS.poi_review == True).all()
-        elif concelho:
-            poi = POIS.query.filter(POIS.concelho_id == concelho, POIS.poi_review == True).all()
-        else:
-            poi = POIS.query.filter(POIS.poi_review == True).all()
+    #if (lat < 42) and (lat > 37) and (lon > -9) and (lon < -6.1):
 
-        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "Distance", "images", "source"]
+        query_ini = 'SELECT pois.id, pois.poi_name, pois.poi_lat, pois.poi_lon, category.categ_name_pt, concelhos.conc_name, pois.poi_descri_pt_short, pois.poi_source FROM pois, category, concelhos'
 
-        info_poi =[];
-        for i,item in enumerate(poi):
-            distance2 = calculate_poi_distance(lat, lon, item)
-            if distance2 < distance:
-                category = Category.query.get(int(item.category_id))
-                if category:
-                    categoryname = category.categ_name_pt
-                else:
-                    categoryname = ""
-                if item.concelho_id:
-                    concelho = Concelho.query.get(int(item.concelho_id))
-                    if concelho:
-                        concelhoname = concelho.conc_name
-                    else:
-                        concelhoname = ""
-                else:
-                    concelhoname = ""
-                images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
+        query_where = ' WHERE pois.category_id = category.categ_id AND pois.concelho_id = concelhos.conc_id'
+
+        if category:
+            query_where = query_where + ' AND pois.category_id = '+str(category)
+
+        if concelho:
+            query_where = query_where + ' AND pois.concelho_id = '+str(concelho)
+
+        if order == 'score': query_orderby = ' ORDER BY pois.poi_score DESC'
+        else: query_orderby = ''
+
+        query = query_ini+query_where+query_orderby
+        result = db.engine.execute(query).fetchall()
+
+        if not result:
+            raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
+
+        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "distance", "images", "source"]
+        info_poi =[]
+
+        for row in result:
+            calc_distance = calculate_poi_distance_b(lat, lon, row['poi_lat'], row['poi_lon'])
+            
+            if calc_distance >= distance: continue
+            else:
+                query_image = 'SELECT original_img FROM images WHERE poi_id = ' +str(row['id'])
+                result_image = list(db.engine.execute(query_image).fetchall())
                 images = []
-                if images_db:
-                    for item2 in images_db:
-                        images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+                if result_image:
+                    for i in result_image:
+                        images.append( request.host_url + 'static/uploads/512px_'+ str(i[0]))
                 else:
-                    images = ""
-                info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                                      item.poi_lat, item.poi_lon,
-                                                      categoryname,
-                                                      concelhoname,
-                                                      item.poi_descri_pt_short,
-                                                      distance2,
-                                                      images,
-                                                      item.poi_source
-                                                      ])))
+                    images = ''
+                    
+                info_poi.append(dict(zip(column, [row['id'], row['poi_name'],
+                                                          row['poi_lat'], row['poi_lon'],
+                                                          row['categ_name_pt'],
+                                                          row['conc_name'],
+                                                          row['poi_descri_pt_short'],
+                                                          calc_distance,
+                                                          images,
+                                                          row['poi_source']
+                                                     ])))
+
+        if not info_poi:
+            raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
+
+        #sort the result list by distance    
+        if order == 'dist':
+            info_poi = sorted(info_poi, key=lambda k: k['distance'])
+
+        #select num_poi results from the result list    
+        if num_poi:    
+            info_poi = info_poi[:int(num_poi)]        
+
         return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)    
+    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)
         
 #-----------------------------------------------------------------
 #Get points that are a certain distance from a point called by ID, can filter by category and/or concelho
-
-def get_close_points_id(poi_id, distance, task_id, category = None, concelho = None):
+def get_close_points_id_b(poi_id, distance, task_id, category=None, concelho=None, num_poi=None, order=None):
     
-    # in case category and/or concelho exist, grab the points that match those parameters otherwise get all the POIs
-    if category and concelho:
-        poi = POIS.query.filter(POIS.category_id == category, POIS.concelho_id == concelho, POIS.poi_review == True).all()
-    elif category:
-        poi = POIS.query.filter(POIS.category_id == category, POIS.poi_review == True).all()
-    elif concelho:
-        poi = POIS.query.filter(POIS.concelho_id == concelho, POIS.poi_review == True).all()
-    else:
-        poi = POIS.query.filter(POIS.poi_review == True).all()
-    if len(poi) == 0:
+    query_ini = 'SELECT pois.id, pois.poi_name, pois.poi_lat, pois.poi_lon, category.categ_name_pt, concelhos.conc_name, pois.poi_descri_pt_short, pois.poi_source FROM pois, category, concelhos'
+
+    query_where = ' WHERE pois.category_id = category.categ_id AND pois.concelho_id = concelhos.conc_id'
+
+    # in case category and/or concelho exist, add the contition to the query
+    if category:
+        query_where = query_where + ' AND pois.category_id = '+str(category)
+
+    if concelho:
+        query_where = query_where + ' AND pois.concelho_id = '+str(concelho)
+
+    if order == 'score': query_orderby = ' ORDER BY pois.poi_score DESC'
+    else: query_orderby = ''
+
+    query = query_ini+query_where+query_orderby
+    result = db.engine.execute(query).fetchall()
+
+    if not result:
         raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
     
+    #query the POIS table for the requested POI so we can extract its latitude and longitude 
+    query_coord = 'SELECT poi_lat, poi_lon FROM pois WHERE id = ' +str(poi_id)
+    result_coord = db.engine.execute(query_coord).fetchone()
     
-    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
-    info_poi =[];
+    if not result_coord:
+        raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
     
-    #query the POIS table for the requested POI so we can extract its latitude and longitude    
+    poi_lat, poi_lon = result_coord
+    
+    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "distance", "source"]
+    info_poi =[]
+    
+    #cycles the results of the POI query in order to build a list with the results
+    for row in result:
+        #runs the calculate_pois_distance function defined above to calculate the distance between POIs
+        calc_distance = calculate_poi_distance_b(poi_lat, poi_lon, row['poi_lat'], row['poi_lon'])
+        
+        if calc_distance >= distance: continue
+        else:
+            query_image = 'SELECT original_img FROM images WHERE poi_id = ' +str(row['id'])
+            result_image = list(db.engine.execute(query_image).fetchall())
+            images = []
+            if result_image:
+                for i in result_image:
+                    images.append( request.host_url + 'static/uploads/512px_'+ str(i[0]))
+            else:
+                images = ""
+            
+            info_poi.append(dict(zip(column, [row['id'], row['poi_name'],
+                                                      row['poi_lat'], row['poi_lon'],
+                                                      row['categ_name_pt'],
+                                                      row['conc_name'],
+                                                      row['poi_descri_pt_short'],
+                                                      images,
+                                                      calc_distance,
+                                                      row['poi_source']
+                                                 ])))
+    
+    #sort the result list by distance
+    if order == "dist":
+        info_poi = sorted(info_poi, key=lambda k: k['distance'])
+    
+    #select num_poi results from the result list
+    if num_poi:    
+        info_poi = info_poi[:int(num_poi)]
+    
+    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
+
+#-----------------------------------------------------------------
+#Get points that are a certain travel time away from a point selected by ID, can filter by category and/or concelho and choose a
+#profile (driving (default option) or walking)
+def get_poi_trip_time_b(poi_id, time2, task_id, category=None, concelho=None, profile=None, num_poi=None, order=None):
+    
+    #Query to get the distances of trips that start from the request point
+    query_ini = 'SELECT pois.id, pois.poi_name, pois.poi_lat, pois.poi_lon, category.categ_name_pt, concelhos.conc_name, pois.poi_descri_pt_short, pois.poi_source'
+
+    query_from = ' FROM pois, category, concelhos, pois_distances'
+
+    query_where = ' WHERE pois.category_id = category.categ_id AND pois.concelho_id = concelhos.conc_id AND pois.id = pois_distances.end_poi_id AND pois_distances.start_poi_id = ' +str(poi_id)
+
+    #set the order of the query results, based on the user input
+    if order == 'score':
+        query_orderby = ' ORDER BY pois.poi_score DESC'
+    elif order == 'time':
+        query_orderby = ' ORDER BY pois_distances.trip_duration'
+    elif order == 'dist':
+        query_orderby = ' ORDER BY pois_distances.trip_distance'
+    else:
+        query_orderby = ''
+
+    #checks existance of category and concelho/municipality parameters in order to filter based on them    
+    if category:
+        query_where = query_where + ' AND pois.category_id = '+str(category)
+
+    if concelho:
+        query_where = query_where + ' AND pois.concelho_id = '+str(concelho)
+
+    #if check for the profile the user wants and add conditions to the query, defaults to "driving"
+    #also add the condition to query the database about the trip duration, based on profile
+    if profile == 'walking':
+        query_ini = query_ini + ', pois_distances.trip_duration_walk AS trip_duration, pois_distances.trip_distance_walk AS trip_distance'
+        query_where = query_where + ' AND pois_distances.trip_duration_walk <= ' +str(time2)
+        if order and order != 'score': query_orderby = query_orderby + '_walk'
+    else:
+        query_ini = query_ini + ', pois_distances.trip_duration, pois_distances.trip_distance'
+        query_where = query_where + ' AND pois_distances.trip_duration <= ' +str(time2)
+
+    if order and order != 'score': query_orderby = query_orderby + ' ASC'
+
+    #set the limit of results from the query, based on user inputs
+    if num_poi: query_limit = ' LIMIT '+str(num_poi)
+    else: query_limit = ''
+
+    query = query_ini+query_from+query_where+query_orderby+query_limit
+    result = db.engine.execute(query).fetchall()
+
+    if not result:
+        raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
+
+    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "trip_duration","trip_distance","images", "source"]
+    info_poi =[]
+
+    for row in result:
+        query_image = 'SELECT original_img FROM images WHERE poi_id = ' +str(row['id'])
+        result_image = list(db.engine.execute(query_image).fetchall())
+        images = []
+        if result_image:
+            for i in result_image:
+                images.append( request.host_url + 'static/uploads/512px_'+ str(i[0]))
+        else:
+            images = ""
+        
+        info_poi.append(dict(zip(column, [row['id'], row['poi_name'],
+                                                  row['poi_lat'], row['poi_lon'],
+                                                  row['categ_name_pt'],
+                                                  row['conc_name'],
+                                                  row['poi_descri_pt_short'],
+                                                  row['trip_duration'],
+                                                  row['trip_distance'],
+                                                  images,
+                                                  row['poi_source']
+                                             ])))
+        
+    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
+
+#-----------------------------------------------------------------
+#Get points that are a certain travel time away from a set of coordinates, can filter by category and/or concelho and choose a
+#profile (driving (default option) or walking)
+def get_poi_trip_time2_b(lat, lon, time2, task_id, num_poi=None, order=None, category=None, concelho=None, profile=None):
+    
+    # load shapefile containing Portugal's shape
+    poly = gpd.read_file('static/shapefiles/portugal.shp')
+
+    # construct point based on lon/lat returned by geocoder
+    point = Point(lon, lat)
+      
+    # check each polygon to see if it contains the point
+    if poly.contains(point).bool():
+        
+        query_ini = 'SELECT pois.id, pois.poi_name, pois.poi_lat, pois.poi_lon, category.categ_name_pt, concelhos.conc_name, pois.poi_descri_pt_short, pois.poi_source FROM pois, category, concelhos'
+
+        query_where = ' WHERE pois.category_id = category.categ_id AND pois.concelho_id = concelhos.conc_id'
+
+        if category:
+            query_where = query_where + ' AND pois.category_id = '+str(category)
+
+        if concelho:
+            query_where = query_where + ' AND pois.concelho_id = '+str(concelho)
+
+        if order == 'score': query_orderby = ' ORDER BY pois.poi_score DESC'
+        else: query_orderby = ''
+            
+        query = query_ini+query_where+query_orderby
+        result = db.engine.execute(query).fetchall()
+
+        if not result:
+            raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
+            
+        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "trip_duration","images", "source"]
+        info_poi=[]
+        
+        #iterates over the results of the query and depending on profile calculates the travel distance and time between the two
+        if profile == "walking":
+            durations = get_trip_distance_duration_table_walk([(lon, lat)],[(float(row['poi_lon']),float(row['poi_lat'])) for row in result])
+        else:
+            duration = get_trip_distance_duration_table([(lon, lat)], [(float(row['poi_lon']),float(row['poi_lat'])) for row in result])
+        
+        for k,row in enumerate(result):
+            #'if' check that validates whether the duration of the trip is below the requested one and if so adds that point's information to the result list
+            if duration[k] >= time2: continue
+            else:
+                query_image = 'SELECT original_img FROM images WHERE poi_id = ' +str(row['id'])
+                result_image = list(db.engine.execute(query_image).fetchall())
+                images = []
+                if result_image:
+                    for i in result_image:
+                        images.append( request.host_url + 'static/uploads/512px_'+ str(i[0]))
+                else:
+                    images = ""
+                    
+                info_poi.append(dict(zip(column, [row['id'], row['poi_name'],
+                                                          row['poi_lat'], row['poi_lon'],
+                                                          row['categ_name_pt'],
+                                                          row['conc_name'],
+                                                          row['poi_descri_pt_short'],
+                                                          duration[k],
+                                                          images,
+                                                          row['poi_source']
+                                                     ])))
+
+        if not info_poi:
+            raise InvalidUsage(nothing_error, status_code=404, task_id=task_id)
+
+        #sort the result list by time
+        if order == "time":
+            info_poi = sorted(info_poi, key=lambda k: k['trip_duration'])
+
+        #select num_poi results from the result list
+        if num_poi:
+            info_poi = info_poi[:int(num_poi)]
+
+        return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
+    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)  
+    
+    
+#-----------------------------------------------------------------
+#Function that calculates the best route when starting from a point defined by ID based on score and time spent on the point, number of days and max time for the trip. Also able to filter based on category and/or concelho
+    
+def route_calculator_id(m, poi_id, start_time, duration, task_id): #m = number of days, Tmax = max time   
+    
+    #Initialize all the data types that will be filled later
+    O=[]     #list that stores POI opening hours
+    C=[]     #list that stores POI closing hours
+    T=[]     #list that stores POI average visit duration time
+    Score=[] #list that stores POI scores
+    D=[]     #Distance matrix
+    Tmax = start_time+duration
+
+    #query to get data relevant to the first point (the point the user requested the trip start from)
     try:
         poi2 = POIS.query.get_or_404(poi_id)
     except:
-        raise InvalidUsage(id_missing, status_code=404, task_id=task_id) 
-    lat = poi2.poi_lat
-    lon = poi2.poi_lon
+        raise InvalidUsage(id_missing, status_code=404, task_id=task_id)
+        
+    if poi2:
+        O.append(start_time)
+        C.append(Tmax)
+        T.append(0)
+        Score.append(0)
+
+    poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id IN (1, 2, 3, 6, 10) AND id !='+ str(poi2.id)+' ORDER BY id ASC')
     
-    #runs the calculate_pois_distance function defined above to calculate the distance between POIs
-   
-    #cycles the results of the POI query in order to build a list with the results
-    for item in poi:
-        distance2 = calculate_poi_distance(lat, lon, item)
-        if distance2 < distance:
-            category = Category.query.get(int(item.category_id))
+    ids_tuple = []
+    dic_score = {}
+    for row in poi_list:
+        dic_score[row[0]] = row[1]  #tuple that stores POI scores
+        ids_tuple.append(row[0])    #tuple that stores POI IDs
+
+    ids_tuple = tuple(ids_tuple)
+    
+    res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id IN'+str(ids_tuple)+' GROUP BY poi_id ORDER BY poi_id').fetchall()
+    
+    for row2 in res2:
+        
+        O.append(row2[1])
+        C.append(row2[2])
+        T.append(row2[3])
+        if dic_score[row2[0]] == 0:
+            Score.append(1)
+        else:
+            Score.append(dic_score[row2[0]])
+            
+    size=len(T)
+    
+    ids_tuple =  (poi2.id,) + ids_tuple
+
+    #queries the distance between the points in order to build the distance matrix
+    pois2=[]
+    for row2 in db.engine.execute('SELECT trip_duration FROM pois_distances WHERE Start_POI_id IN'+str(ids_tuple)+' AND End_POI_id IN'+str(ids_tuple)+''):
+        pois2.append(row2[0])
+
+    D = [pois2[i:i+size] for i in range(0,len(pois2), size)]
+
+    for i in range(0,m):
+        O.append(O[0])  #adds the arrival point
+        C.append(C[0])  #adds the arrival point
+        T.append(T[0])  #adds the arrival point     
+        Score.append(0) #adds the arrival point
+
+       
+    #Creates matrix for each day
+    for i in range(0,size):
+        for j in range(0,m): 
+            D[i].append(D[0][i])
+
+    for i in range(0,m): 
+        D.append(D[0][:])
+        
+                
+    #executes the function defined above to calculate the best round based on score and time spent
+    besttour,bestfound=ILS.ILS_heuristic(m,Tmax,T,Score,O,C,D)
+        
+    ids_tuple = ids_tuple + (poi2.id,)
+    
+    day_list = {};
+    #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
+    for d,tour in enumerate(besttour):
+        info_poi =[];
+        newlist = []
+        for item in tour:
+            newlist.append(ids_tuple[item])
+            poi = POIS.query.get_or_404(ids_tuple[item])
+            column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
+            category = Category.query.get(int(poi.category_id))
             if category:
                 categoryname = category.categ_name_pt
             else:
                 categoryname = ""
-            if item.concelho_id:
-                concelho = Concelho.query.get(int(item.concelho_id))
+            if poi.concelho_id:
+                concelho = Concelho.query.get(int(poi.concelho_id))
                 if concelho:
                     concelhoname = concelho.conc_name
                 else:
                     concelhoname = ""
             else:
                 concelhoname = ""
-            images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
+            images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
             images = []
             if images_db:
                 for item2 in images_db:
                     images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
             else:
                 images = ""
-            info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                                  item.poi_lat, item.poi_lon,
+            info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
+                                                  poi.poi_lat, poi.poi_lon,
                                                   categoryname,
                                                   concelhoname,
-                                                  item.poi_descri_pt_short,
+                                                  poi.poi_descri_pt_short,
                                                   images,
-                                                  item.poi_source])))
-        
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-
+                                                  poi.poi_source])))
+        day_list["day_"+str(d+1)] = info_poi
+    return jsonify(result = day_list, status = query_success, timestamp=time.time(), log_time=task_id,best=besttour[0],best2=newlist)
 
 #-----------------------------------------------------------------
-#Get points that are a certain travel time away from a point selected by ID, can filter by category and/or concelho and choose a
-#profile (driving (default option) or walking)
+#Function that calculates the best route when starting from a point defined by ID based on score and time spent on the point, number of days and max time for the trip. Also able to filter based on category and/or concelho
 
-def get_poi_trip_time(poi_id, time2, task_id, category2=None, concelho2=None, profile=None):
+def route_calculator_id2(m, poi_id, start_time, duration, task_id, category=None, concelho=None): #m = number of days, Tmax = max time   
     
-    #Query to get the distances of trips that start from the request point
-    info = POIS_distances.query.filter(POIS_distances.start_poi_id==poi_id).all()
-    
-    if len(info) == 0:
+    #Initialize all the data types that will be filled later
+    O=[]     #list that stores POI opening hours
+    C=[]     #list that stores POI closing hours
+    T=[]     #list that stores POI average visit duration time
+    Score=[] #list that stores POI scores
+    D=[]     #Distance matrix
+    Tmax = duration
+
+    #query to get data relevant to the first point (the point the user requested the trip start from)
+    try:
+        poi2 = POIS.query.get_or_404(poi_id)
+    except:
         raise InvalidUsage(id_missing, status_code=404, task_id=task_id)
-    
-    column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "trip_duration","images", "source"]
-    info_poi=[];
-    
-    for item in info:
         
-        #if check for the profile the user wants, defaults to "driving"
+    if poi2:
+        O.append(start_time)
+        C.append(Tmax)
+        T.append(0)
+        Score.append(0)
         
-        if profile == "walking":
-            
-            #checks if the duration is below the requested one, if not the end POI is not processed and added to the result list
-            if float(item.trip_duration_walk) < time2:
-                
-                #checks existance of category and concelho/municipality parameters in order to filter based on them
-                if category2 and concelho2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.category_id == category2, POIS.concelho_id == concelho2, POIS.poi_review == True)
-                elif category2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.category_id == category2, POIS.poi_review == True)
-                elif concelho2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.concelho_id == concelho2, POIS.poi_review == True)
-                else:
-                    info2= POIS.query.filter(POIS.id == item.end_poi_id, POIS.poi_review == True)
-                
-                for item2 in info2:
-                    category = Category.query.get(int(item2.category_id))
-                    if category:
-                        categoryname = category.categ_name_pt
-                    else:
-                        categoryname = ""
-                    if item2.concelho_id:
-                        concelho = Concelho.query.get(int(item2.concelho_id))
-                        if concelho:
-                            concelhoname = concelho.conc_name
-                        else:
-                            concelhoname = ""
-                    else:
-                        concelhoname = ""
-                    images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item2.id).all()
-                    images = []
-                    if images_db:
-                        for item3 in images_db:
-                            images.append( request.host_url + 'static/uploads/512px_'+ item3.original_img)
-                    else:
-                        images = ""
-                    info_poi.append(dict(zip(column, [item2.id, item2.poi_name,
-                                                          item2.poi_lat, item2.poi_lon,
-                                                          categoryname,
-                                                          concelhoname,
-                                                          item2.poi_descri_pt_short,
-                                                          item.trip_duration,
-                                                          images,
-                                                          item2.poi_source])))
+    if category is None:
+        category = (1, 2, 3, 6, 10)
 
-        #default state that checks the trip duration based on the results from OSRM with the driving profile
+    if len(category) <= 2 and concelho == None:
+            poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +' AND id !='+ str(poi2.id)+' ORDER BY id ASC')
+    elif len(category) <= 2 and len(concelho) <= 2:
+            poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +' AND concelho_id = '+ str(concelho) +' AND id !='+ str(poi2.id)+' ORDER BY id ASC')
+    elif len(category) <= 2 and len(concelho) > 2:
+            poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +' AND concelho_id IN '+ str(concelho) +' AND id !='+ str(poi2.id)+' ORDER BY id ASC')
+    elif len(category) > 2 and len(concelho) > 2:
+            poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id IN '+ str(category) +' AND concelho_id IN '+ str(concelho) +' AND id !='+ str(poi2.id)+' ORDER BY id ASC')
+    else:
+            poi_list = db.engine.execute('SELECT id, poi_score FROM pois WHERE poi_review=1 AND category_id IN '+ str(category) +' AND id !='+ str(poi2.id)+' ORDER BY id ASC')
+    
+    ids_tuple = [] 
+    dic_score = {}
+    for row in poi_list:
+        dic_score[row[0]] = row[1]  #tuple that stores POI scores
+        ids_tuple.append(row[0])    #tuple that stores POI IDs
+
+    if ids_tuple is None:
+        return  jsonify(result = {'day_1':[]}, status = query_success, timestamp=time.time(), log_time=task_id)
+    elif len(ids_tuple) == 1:
+        res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id ='+str(ids_tuple[0])+' GROUP BY poi_id ORDER BY poi_id').fetchall()
+        ids_tuple = tuple(ids_tuple)
+    else:    
+        ids_tuple = tuple(ids_tuple)
+        res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id IN'+str(ids_tuple)+' GROUP BY poi_id ORDER BY poi_id').fetchall()
+    
+    for row2 in res2:
+        
+        O.append(row2[1]-start_time)
+        C.append(row2[2]-start_time)
+        T.append(row2[3])
+        if dic_score[row2[0]] == 0:
+            Score.append(1)
         else:
-            if float(item.trip_duration) < time2:
-                if category2 and concelho2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.category_id == category2, POIS.concelho_id == concelho2, POIS.poi_review == True)
-                elif category2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.category_id == category2, POIS.poi_review == True)
-                elif concelho2:
-                    info2 = POIS.query.filter(POIS.id == item.end_poi_id, POIS.concelho_id == concelho2, POIS.poi_review == True)
+            Score.append(dic_score[row2[0]])
+            
+    size=len(T)
+    
+    ids_tuple =  (poi2.id,) + ids_tuple
+
+    #queries the distance between the points in order to build the distance matrix
+    pois2=[]
+    
+    if len(ids_tuple) == 1:
+        for row2 in db.engine.execute('SELECT trip_duration FROM pois_distances WHERE Start_POI_id = '+str(ids_tuple[0])+' AND End_POI_id = '+str(ids_tuple[0])+''):
+            pois2.append(row2[0])
+    else:    
+        for row2 in db.engine.execute('SELECT trip_duration FROM pois_distances WHERE Start_POI_id IN '+str(ids_tuple)+' AND End_POI_id IN '+str(ids_tuple)+''):
+            pois2.append(row2[0])
+
+    D = [pois2[i:i+size] for i in range(0,len(pois2), size)]
+
+    for i in range(0,m):
+        O.append(O[0])  #adds the arrival point
+        C.append(C[0])  #adds the arrival point
+        T.append(T[0])  #adds the arrival point     
+        Score.append(0) #adds the arrival point
+
+       
+    #Creates matrix for each day
+    for i in range(0,size):
+        for j in range(0,m): 
+            D[i].append(D[0][i])
+
+    for i in range(0,m): 
+        D.append(D[0][:])
+        
+                
+    #executes the function defined above to calculate the best round based on score and time spent
+    besttour,bestfound=ILS.ILS_heuristic(m,Tmax,T,Score,O,C,D)
+        
+    ids_tuple = ids_tuple + (poi2.id,)
+    
+    day_list = {};
+    #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
+    for d,tour in enumerate(besttour):
+        info_poi =[];
+        newlist = []
+        for item in tour:
+            newlist.append(ids_tuple[item])
+            poi = POIS.query.get_or_404(ids_tuple[item])
+            column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
+            category = Category.query.get(int(poi.category_id))
+            if category:
+                categoryname = category.categ_name_pt
+            else:
+                categoryname = ""
+            if poi.concelho_id:
+                concelho = Concelho.query.get(int(poi.concelho_id))
+                if concelho:
+                    concelhoname = concelho.conc_name
                 else:
-                    info2= POIS.query.filter(POIS.id == item.end_poi_id, POIS.poi_review == True)
-                for item2 in info2:
-                    category = Category.query.get(int(item2.category_id))
-                    if category:
-                        categoryname = category.categ_name_pt
-                    else:
-                        categoryname = ""
-                    if item2.concelho_id:
-                        concelho = Concelho.query.get(int(item2.concelho_id))
-                        if concelho:
-                            concelhoname = concelho.conc_name
-                        else:
-                            concelhoname = ""
-                    else:
-                        concelhoname = ""
-                    images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item2.id).all()
-                    images = []
-                    if images_db:
-                        for item3 in images_db:
-                            images.append( request.host_url + 'static/uploads/512px_'+ item3.original_img)
-                    else:
-                        images = ""
-                    info_poi.append(dict(zip(column, [item2.id, item2.poi_name,
-                                                          item2.poi_lat, item2.poi_lon,
-                                                          categoryname,
-                                                          concelhoname,
-                                                          item2.poi_descri_pt_short,
-                                                          item.trip_duration,
-                                                          images,
-                                                          item2.poi_source])))
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-
-#-----------------------------------------------------------------
-#Get points that are a certain travel time away from a set of coordinates, can filter by category and/or concelho and choose a
-#profile (driving (default option) or walking)
-
-def get_poi_trip_time2(lat, lon, time2, task_id, category=None, concelho=None, profile=None):
-
-    # load shapefile containing Portugal's shape
+                    concelhoname = ""
+            else:
+                concelhoname = ""
+            images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
+            images = []
+            if images_db:
+                for item2 in images_db:
+                    images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+            else:
+                images = ""
+            info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
+                                                  poi.poi_lat, poi.poi_lon,
+                                                  categoryname,
+                                                  concelhoname,
+                                                  poi.poi_descri_pt_short,
+                                                  images,
+                                                  poi.poi_source])))
+        day_list["day_"+str(d+1)] = info_poi
+    return jsonify(result = day_list, status = query_success, timestamp=time.time(), log_time=task_id)
+    
+    
+#Function that calculates the best route when starting from a point defined by latitude and longitude based on score and time spent on the point, number of days and max time for the trip. Also able to filter based on category and/or concelho
+    
+def route_calculator_coord(m, lat, lon, start_time, duration, task_id): #m = number of days, Tmax = max time   
+# load shapefile containing Portugal's shape
     poly = gpd.read_file('static/shapefiles/portugal.shp')
 
     # construct point based on lon/lat returned by geocoder
     point = Point(lon, lat)
 
     # check each polygon to see if it contains the point
-    if poly.contains(point).bool():  
-            
-        # in case category and/or concelho exist, grab the points that match those parameters otherwise get all the POIs
-        if category and concelho:
-            poi = POIS.query.filter(POIS.category_id == category, POIS.concelho_id == concelho, POIS.poi_review == True).all()
-        elif category:
-            poi = POIS.query.filter(POIS.category_id == category, POIS.poi_review == True).all()
-        elif concelho:
-            poi = POIS.query.filter(POIS.concelho_id == concelho, POIS.poi_review == True).all()
-        else:
-            #raise InvalidUsage(arg_missing, status_code=400)
-            poi = POIS.query.filter(POIS.poi_review == True).all()
-                
-        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "trip_duration","images", "source"]
-        info_poi=[];
-            
-        #iterates over the results of the query and depending on profile calculates the travel distance and time between the two
-        for item in poi:
-            
-            #creates an upper-bond estimate to prematurely eliminate impossible points
-            distance2 = calculate_poi_distance(lat, lon, item)
-            if profile == "walking":
-                duration2 = distance2/8*3600 #time taken to cover a distance at a speed of 8Km/h converted to seconds
-            else:
-                duration2 = distance2/70*3600 #time taken to cover a distance at a speed of 70Km/h converted to seconds    
-            if duration2 <= time2:
-                if profile == "walking":
-                    distance, duration = get_trip_distance_duration_walk([lon, lat], [item.poi_lon, item.poi_lat])
-                else:
-                    distance, duration = get_trip_distance_duration([lon, lat], [item.poi_lon, item.poi_lat])
+    if poly.contains(point).bool():    
+        #Initialize all the data types that will be filled later
+        O=[]     #list that stores POI opening hours
+        C=[]     #list that stores POI closing hours
+        T=[]     #list that stores POI average visit duration time
+        Score=[] #list that stores POI scores
+        D=[]     #Distance matrix
+        Tmax = start_time+duration
 
-                #'if' check that validates whether the duration of the trip is below the requested one and if so adds that point's information to the result list
-                if duration < time2:
-                    category = Category.query.get(int(item.category_id))
-                    if category:
-                        categoryname = category.categ_name_pt
-                    else:
-                        categoryname = ""
-                    if item.concelho_id:
-                        concelho = Concelho.query.get(int(item.concelho_id))
-                        if concelho:
-                            concelhoname = concelho.conc_name
-                        else:
-                            concelhoname = ""
+        #append data relevant to the first point (the point the user requested the trip start from)
+        O.append(start_time)
+        C.append(Tmax)
+        T.append(0)
+        Score.append(0)
+
+        poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon FROM pois WHERE poi_review=1 AND category_id IN(1, 2, 3, 6, 10) ORDER BY id ASC')
+
+        
+        ids_tuple = []
+        dic_score = {}
+        dest = []
+        for row in poi_list:
+            dic_score[row[0]] = row[1]  #tuple that stores POI scores
+            ids_tuple.append(row[0])    #tuple that stores POI IDs
+            dest.append((float(row[3]), float(row[2])) )
+ 
+        ids_tuple = tuple(ids_tuple)
+
+        res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id IN'+str(ids_tuple)+' GROUP BY poi_id ORDER BY poi_id').fetchall()
+
+        for row2 in res2:
+
+            O.append(row2[1])
+            C.append(row2[2])
+            T.append(row2[3])
+            if dic_score[row2[0]] == 0:
+                Score.append(1)
+            else:
+                Score.append(dic_score[row2[0]])
+
+        size=len(T)
+        
+        #queries the distance between the points in order to build the distance matrix
+        durations_0j = get_trip_distance_duration_table_ger([(lon, lat)],dest)
+        durations_j0 = get_trip_distance_duration_table_ger(dest,[(lon, lat)])
+
+        durations_j0.insert(0,[0])
+        
+        pois2=[]
+        for row2 in db.engine.execute('SELECT trip_duration FROM pois_distances WHERE Start_POI_id IN'+str(ids_tuple)+' AND End_POI_id IN'+str(ids_tuple)+''):
+            pois2.append(row2[0])
+
+        D = [pois2[i:i+size] for i in range(0,len(pois2), size-1)]
+
+        D.insert(0, durations_0j[0])
+
+        for k,row in enumerate(D):
+            D[k] = durations_j0[k] + row
+
+        #Creates matrix for each day
+        for i in range(0,size):
+            for j in range(0,m): 
+                D[i].append(D[0][i])
+
+        for i in range(0,m): 
+            D.append(D[0][:])
+
+        for i in range(0,m):
+            O.append(O[0])  #adds the arrival point
+            C.append(C[0])  #adds the arrival point
+            T.append(T[0])  #adds the arrival point     
+            Score.append(0) #adds the arrival point
+        
+        #executes the function defined above to calculate the best round based on score and time spent
+        besttour,bestfound=ILS.ILS_heuristic(m,Tmax,T,Score,O,C,D)
+        
+        day_list = {};
+        out = besttour[0].copy()
+        #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
+        for d,tour in enumerate(besttour):
+            tour.pop(0) # removes final point since it's a generic point and thus not called by the program
+            tour.pop()  # removes final point since it's a generic point and thus not called by the program
+            
+            info_poi =[];
+            newlist = []
+            for item in tour:
+                poi = POIS.query.get_or_404(ids_tuple[item-1])
+                newlist.append(ids_tuple[item-1])
+                
+                column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
+                category = Category.query.get(int(poi.category_id))
+                if category:
+                    categoryname = category.categ_name_pt
+                else:
+                    categoryname = ""
+                if poi.concelho_id:
+                    concelho = Concelho.query.get(int(poi.concelho_id))
+                    if concelho:
+                        concelhoname = concelho.conc_name
                     else:
                         concelhoname = ""
-                    images_db =  db.session.query(Images.original_img).filter(Images.poi_id == item.id).all()
-                    images = []
-                    if images_db:
-                        for item2 in images_db:
-                            images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+                else:
+                    concelhoname = ""
+                images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
+                images = []
+                if images_db:
+                    for item2 in images_db:
+                        images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+                else:
+                    images = ""
+                info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
+                                                      poi.poi_lat, poi.poi_lon,
+                                                      categoryname,
+                                                      concelhoname,
+                                                      poi.poi_descri_pt_short,
+                                                      images,
+                                                      poi.poi_source])))
+            day_list["day_"+str(d+1)] = info_poi
+        return jsonify(result = day_list, status = query_success, timestamp=time.time(), log_time=task_id)
+    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)    
+
+def route_calculator_coord2(m, lat, lon, start_time, duration, task_id, category=None, concelho=None): #m = number of days, Tmax = max time   
+# load shapefile containing Portugal's shape
+    poly = gpd.read_file('static/shapefiles/portugal.shp')
+
+    # construct point based on lon/lat returned by geocoder
+    point = Point(lon, lat)
+
+    # check each polygon to see if it contains the point
+    if poly.contains(point).bool():    
+        #Initialize all the data types that will be filled later
+        O=[]     #list that stores POI opening hours
+        C=[]     #list that stores POI closing hours
+        T=[]     #list that stores POI average visit duration time
+        Score=[] #list that stores POI scores
+        D=[]     #Distance matrix
+        Tmax = duration
+
+        #append data relevant to the first point (the point the user requested the trip start from)
+        O.append(0)
+        C.append(Tmax)
+        T.append(0)
+        Score.append(0)
+
+        if category == None:
+            category = (1, 2, 3, 6, 10)
+
+        if len(category) <= 2 and concelho == None:
+            poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon  FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +'ORDER BY id ASC')
+        elif len(category) <= 2 and len(concelho) <= 2:
+            poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon  FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +' AND concelho_id = '+ str(concelho) +' ORDER BY id ASC')
+        elif len(category) <= 2 and len(concelho) > 2:
+            poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon  FROM pois WHERE poi_review=1 AND category_id = '+ str(category) +' AND concelho_id IN '+ str(concelho) +' ORDER BY id ASC')
+        elif len(category) > 2 and len(concelho) > 2:
+            poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon  FROM pois WHERE poi_review=1 AND category_id IN '+ str(category) +' AND concelho_id IN '+ str(concelho) +' ORDER BY id ASC')
+        else:
+            poi_list = db.engine.execute('SELECT id, poi_score, poi_lat,poi_lon FROM pois WHERE poi_review=1 AND category_id IN '+ str(category) +' ORDER BY id ASC')
+        
+        ids_tuple = []
+        dic_score = {}
+        dest = []
+        for row in poi_list:
+            dic_score[row[0]] = row[1]  #tuple that stores POI scores
+            ids_tuple.append(row[0])    #tuple that stores POI IDs
+            dest.append((float(row[3]), float(row[2])) )
+
+        if ids_tuple is None:
+            return  jsonify(result = {'day_1':[]}, status = query_success, timestamp=time.time(), log_time=task_id)
+        elif len(ids_tuple) == 1:
+            res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id ='+str(ids_tuple[0])+' GROUP BY poi_id ORDER BY poi_id').fetchall()
+            ids_tuple = tuple(ids_tuple)
+            
+            durations_0j = get_trip_distance_duration_table_ger([(lon, lat)],dest)
+            durations_j0 = get_trip_distance_duration_table_ger(dest,[(lon, lat)])
+            
+            trip_time = durations_j0[0][0]+durations_0j[0][0]
+            
+            if float(trip_time) < Tmax:
+                info_poi =[]
+                newlist = []
+                day_list = {}
+                
+                poi = POIS.query.get_or_404(ids_tuple[0])
+                newlist.append(ids_tuple[0])
+                
+                column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
+                category = Category.query.get(int(poi.category_id))
+                if category:
+                    categoryname = category.categ_name_pt
+                else:
+                    categoryname = ""
+                if poi.concelho_id:
+                    concelho = Concelho.query.get(int(poi.concelho_id))
+                    if concelho:
+                        concelhoname = concelho.conc_name
                     else:
-                        images = ""
-
-                    info_poi.append(dict(zip(column, [item.id, item.poi_name,
-                                                              item.poi_lat, item.poi_lon,
-                                                              categoryname,
-                                                              concelhoname,
-                                                              item.poi_descri_pt_short,
-                                                              duration,
-                                                              images,
-                                                              item.poi_source])))
-        return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)
-    
-#-----------------------------------------------------------------
-#Function that calculates the best route when starting from a point defined by ID based on score and time spent on the point, number of days and max time for the trip. Also able to filter based on category and/or concelho
-    
-def route_calculator_id(m, duration, poi_id, start_time, task_id): #m = number of days, Tmax = max time   
-    
-    #Initialize all the data types that will be filled later
-    O=[] #list that stores POI opening hours
-    C=[] #list that stores POI closing hours
-    T=[] #list that stores POI average visit duration time
-    Score=[] #list that stores POI scores
-    ids=() #tuple that stores POI IDs
-    D=[] #Distance matrix
-    Tmax = start_time+duration
-    #query to get data relevant to the first point (the point the user requested the trip start from)
-    try:
-        poi2 = POIS.query.get_or_404(poi_id)
-    except:
-        raise InvalidUsage(id_missing, status_code=404, task_id=task_id)
-    if poi2:
-        item2 = poi2.poi_schedule.first()
-        if item2:
-            O.append(start_time)
-            C.append(Tmax)
-            T.append(0)
-        ids= ids + (poi2.id,)
-        
-        #verification to make sure the score isn't 0
-        if poi2.poi_score == 0:
-            Score.append(1)
-        else:
-            Score.append(poi2.poi_score)
-            
-    poi = POIS.query.filter(POIS.id!= poi2.id, POIS.poi_review==1, POIS.category_id.in_([1, 2, 3, 6, 10])).all()
-    
-    #cycle that goes through the POIS query and allocates its data in accordance to the function's needs
-    for item in poi:
-        item2 = item.poi_schedule.first()
-        if item2:
-            O.append(item2.poi_open_h)
-            C.append(item2.poi_close_h)
-            T.append(item2.poi_vdura)
-        ids= ids + (item.id,)
-        if item.poi_score == 0:
-            Score.append(1)
-        else:
-            Score.append(item.poi_score)
-
-    n=len(T)
-
-    #queries the distance between the points in order to build the distance matrix
-    for i in range(0, len(ids)):  
-        pois2=[]
-        for row2 in db.engine.execute('SELECT trip_distance FROM pois_distances WHERE start_poi_id='+str(ids[i])+' AND end_poi_id IN'+str(ids)+''):
-            pois2.append(row2[0])
-        D.append(pois2) 
-
-    for i in range(0,m):
-        O.append(O[0]) #adds the arrival point
-        C.append(C[0]) #adds the arrival point
-        T.append(T[0])  #adds the arrival point     
-        Score.append(0) #adds the arrival point
-        ids = ids + (ids[0],)
-
-    #Creates matrix for each day
-    for i in range(0,n):
-        for j in range(0,m): 
-            D[i].append(D[0][i])
-
-    for i in range(0,m): 
-        D.append(D[0][:])
-        
-    #executes the function defined above to calculate the best round based on score and time spent
-    besttour,bestfound=ILS_testes_m_final_py3.ILS_heuristic(m,Tmax,T,Score,O,C,D)
-    
-    info_poi =[];
-    
-    #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
-    for item in besttour[0]:
-        poi = POIS.query.get_or_404(ids[item])
-        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
-
-        category = Category.query.get(int(poi.category_id))
-        if category:
-            categoryname = category.categ_name_pt
-        else:
-            categoryname = ""
-        if poi.concelho_id:
-            concelho = Concelho.query.get(int(poi.concelho_id))
-            if concelho:
-                concelhoname = concelho.conc_name
+                        concelhoname = ""
+                else:
+                    concelhoname = ""
+                images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
+                images = []
+                if images_db:
+                    for item2 in images_db:
+                        images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+                else:
+                    images = ""
+                info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
+                                                      poi.poi_lat, poi.poi_lon,
+                                                      categoryname,
+                                                      concelhoname,
+                                                      poi.poi_descri_pt_short,
+                                                      images,
+                                                      poi.poi_source])))
+                
+                day_list["day_1"] = info_poi
+                return jsonify(result = day_list, status = query_success, timestamp=time.time(), log_time=task_id)
             else:
-                concelhoname = ""
-        else:
-            concelhoname = ""
-        images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
-        images = []
-        if images_db:
-            for item2 in images_db:
-                images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
-        else:
-            images = ""
-        info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
-                                              poi.poi_lat, poi.poi_lon,
-                                              categoryname,
-                                              concelhoname,
-                                              poi.poi_descri_pt_short,
-                                              images,
-                                              poi.poi_source])))
-
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
-
-#Function that calculates the best route when starting from a point defined by latitude and longitude based on score and time spent on the point, number of days and max time for the trip. Also able to filter based on category and/or concelho
-    
-def route_calculator_coord(m, Tmax, lat, lon, start_time, end_time, category, concelho, task_id): #m = number of days, Tmax = max time   
-    
-    #Initialize all the data types that will be filled later
-    O=[] #list that stores POI opening hours
-    C=[] #list that stores POI closing hours
-    T=[] #list that stores POI average visit duration time
-    Score=[] #list that stores POI scores
-    ids=() #tuple that stores POI IDs
-    D=[] #Distance matrix
-    
-    #append data relevant to the first point (the point the user requested the trip start from)
-    O.append(start_time)
-    C.append(end_time)
-    T.append(0)
-        
-    #append initial score
-    Score.append(1)
+                return  jsonify(result = {'day_1':[]}, status = query_success, timestamp=time.time(), log_time=task_id)
             
-    poi = POIS.query.filter(POIS.poi_review==1, POIS.category_id.in_([1, 2, 3, 6, 10])).all()
+        else:    
+            ids_tuple = tuple(ids_tuple)
+            res2 = db.engine.execute('SELECT poi_id,poi_open_h, poi_close_h, poi_vdura FROM pois_schedule WHERE poi_id IN'+str(ids_tuple)+' GROUP BY poi_id ORDER BY poi_id').fetchall()
 
-    #cycle that goes through the POIS query and allocates its data in accordance to the function's needs
-    for item in poi:
-        item2 = item.poi_schedule.first()
-        if item2:
-            O.append(item2.poi_open_h)
-            C.append(item2.poi_close_h)
-            T.append(item2.poi_vdura)
-        ids= ids + (item.id,)
-        if item.poi_score == 0:
-            Score.append(1)
-        else:
-            Score.append(item.poi_score)
+        for row2 in res2:
 
-    n=len(T)
-
-    #builds the distance for the first point
-    pois2=[0]
-    for item in poi:
-        distance, duration = get_trip_distance_duration([lon, lat], [item.poi_lon, item.poi_lat])
-        pois2.append(distance)
-    D.append(pois2)
-    
-
-    #queries the distance between the points in order to build the distance matrix
-    for i in range(0, len(ids)):  
-        pois2=[]
-        for row2 in db.engine.execute('SELECT trip_distance FROM pois_distances WHERE start_poi_id='+str(ids[i])+' AND end_poi_id IN'+str(ids)+''):
-            pois2.append(row2[0])
-        D.append(pois2)
-        
-    for i, item in enumerate(poi, 1):
-        distance, duration = get_trip_distance_duration([item.poi_lon, item.poi_lat], [lon, lat])
-        D[i] = [distance] + D[i]
-
-    for i in range(0,m):
-        O.append(O[0]) #adds the arrival point
-        C.append(C[0]) #adds the arrival point
-        T.append(T[0])  #adds the arrival point     
-        Score.append(0) #adds the arrival point
-        #ids = ids + (ids[0],)
-
-    #Creates matrix for each day
-    for i in range(0,n):
-        for j in range(0,m): 
-            D[i].append(D[0][i])
-
-    for i in range(0,m): 
-        D.append(D[0][:])
-        
-    #executes the function defined above to calculate the best round based on score and time spent
-    besttour,bestfound=ILS_testes_m_final_py3.ILS_heuristic(m,Tmax,T,Score,O,C,D)
-    
-    info_poi =[];
-    besttour[0].pop() # removes final point since it's a generic point and thus not called by the program
-    
-    #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
-    for item in besttour[0]:
-        poi = POIS.query.get_or_404(ids[item])
-        column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
-
-        category = Category.query.get(int(poi.category_id))
-        if category:
-            categoryname = category.categ_name_pt
-        else:
-            categoryname = ""
-        if poi.concelho_id:
-            concelho = Concelho.query.get(int(poi.concelho_id))
-            if concelho:
-                concelhoname = concelho.conc_name
+            O.append(row2[1]-start_time)
+            C.append(row2[2]-start_time)
+            T.append(row2[3])
+            if dic_score[row2[0]] == 0:
+                Score.append(1)
             else:
-                concelhoname = ""
-        else:
-            concelhoname = ""
-        images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
-        images = []
-        if images_db:
-            for item2 in images_db:
-                images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
-        else:
-            images = ""
-        info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
-                                              poi.poi_lat, poi.poi_lon,
-                                              categoryname,
-                                              concelhoname,
-                                              poi.poi_descri_pt_short,
-                                              images,
-                                              poi.poi_source])))
+                Score.append(dic_score[row2[0]])
 
-    return jsonify(result = info_poi, status = query_success, timestamp=time.time(), log_time=task_id)
+        size=len(T)
+        if size < 2:
+            return  jsonify(result = {'day_1':[]}, status = query_success, timestamp=time.time(), log_time=task_id)
+        
+        #queries the distance between the points in order to build the distance matrix
+        durations_0j = get_trip_distance_duration_table_ger([(lon, lat)],dest)
+        durations_j0 = get_trip_distance_duration_table_ger(dest,[(lon, lat)])
 
+        durations_j0.insert(0,[0])
+        
+        pois2=[]
+           
+        for row2 in db.engine.execute('SELECT trip_duration FROM pois_distances WHERE Start_POI_id IN '+str(ids_tuple)+' AND End_POI_id IN '+str(ids_tuple)+''):
+            pois2.append(row2[0])
 
+        D = [pois2[i:i+size] for i in range(0,len(pois2), size-1)]
+
+        D.insert(0, durations_0j[0])
+
+        for k,row in enumerate(D):
+            D[k] = durations_j0[k] + row
+
+        #Creates matrix for each day
+        for i in range(0,size):
+            for j in range(0,m): 
+                D[i].append(D[0][i])
+
+        for i in range(0,m): 
+            D.append(D[0][:])
+
+        for i in range(0,m):
+            O.append(O[0])  #adds the arrival point
+            C.append(C[0])  #adds the arrival point
+            T.append(T[0])  #adds the arrival point     
+            Score.append(0) #adds the arrival point
+        
+        #executes the function defined above to calculate the best round based on score and time spent
+        besttour,bestfound=ILS.ILS_heuristic(m,Tmax,T,Score,O,C,D)
+        
+        day_list = {};
+        out = besttour[0].copy()
+        #iterates over the results of the previous function in order to build a result list with the data for all the points in the route
+        for d,tour in enumerate(besttour):
+            tour.pop(0) # removes final point since it's a generic point and thus not called by the program
+            tour.pop()  # removes final point since it's a generic point and thus not called by the program
+            
+            info_poi =[];
+            newlist = []
+            for item in tour:
+                poi = POIS.query.get_or_404(ids_tuple[item-1])
+                newlist.append(ids_tuple[item-1])
+                
+                column = ["id", "poi_name", "poi_lat", "poi_lon", "poi_categ", "poi_conc", "poi_descript", "images", "source"]
+                category = Category.query.get(int(poi.category_id))
+                if category:
+                    categoryname = category.categ_name_pt
+                else:
+                    categoryname = ""
+                if poi.concelho_id:
+                    concelho = Concelho.query.get(int(poi.concelho_id))
+                    if concelho:
+                        concelhoname = concelho.conc_name
+                    else:
+                        concelhoname = ""
+                else:
+                    concelhoname = ""
+                images_db =  db.session.query(Images.original_img).filter(Images.poi_id == poi.id).all()
+                images = []
+                if images_db:
+                    for item2 in images_db:
+                        images.append( request.host_url + 'static/uploads/512px_'+ item2.original_img)
+                else:
+                    images = ""
+                info_poi.append(dict(zip(column, [poi.id, poi.poi_name,
+                                                      poi.poi_lat, poi.poi_lon,
+                                                      categoryname,
+                                                      concelhoname,
+                                                      poi.poi_descri_pt_short,
+                                                      images,
+                                                      poi.poi_source])))
+            day_list["day_"+str(d+1)] = info_poi
+        return jsonify(result = day_list, status = query_success, timestamp=time.time(), log_time=task_id)
+    raise InvalidUsage("Coordenates are outside the country's borders, please try another pair", status_code=400, task_id=task_id)    
+    
 #-----------------------------------------------------------------
 #Get Distance, Duration and Polyline between two points using OSRM, accepts driving (default) and walking as its profiles
     
@@ -852,7 +1112,6 @@ def get_OSRM_route_poitopoint(poi_id, lat, lon, task_id, profile=None, switch=0)
     
 #-----------------------------------------------------------------    
 #Get info about specific route by ID
-
 def get_specific_route_id(route_id, task_id):
     
     #queries the DB for the route whose ID matches the request
@@ -963,7 +1222,6 @@ def require_app_key(f):
 
 #-----------------------------------------------------------------
 #Creates a template for error messages
-
 class InvalidUsage(Exception):
     status_code = 400
 
@@ -996,8 +1254,6 @@ def ratelimit_handler(e):
             jsonify(error="ratelimit exceeded %s" % e.description, status_code=429)
             , 429
     )
-
-
 
 
 #-----------------------------------------------------------------
@@ -1033,7 +1289,9 @@ def get_task_close_point(task_id):
     dist = float(request.args.get('dist', None))
     cat = request.args.get('cat', None)
     conc = request.args.get('conc', None)
-    task = get_close_points(lat, lon, dist, task_id, cat, conc )
+    num_poi = request.args.get('numpoi', None)
+    order = request.args.get('order', None)
+    task = get_close_points_b(lat, lon, dist, task_id, cat, conc, num_poi, order)
     return task
 
 @app.route('/api/v1.0/dist_id', methods=['GET']) 
@@ -1044,7 +1302,9 @@ def get_task_close_point_2(task_id):
     dist = float(request.args.get('dist', None))
     cat = request.args.get('cat', None)
     conc = request.args.get('conc', None)
-    task = get_close_points_id(poi_id, dist, task_id, cat, conc)
+    num_poi = request.args.get('numpoi', None)
+    order = request.args.get('order', None)
+    task = get_close_points_id_b(poi_id, dist, task_id, cat, conc, num_poi, order)
     return task
 
 @app.route('/api/v1.0/poi_time', methods=['GET'])
@@ -1057,7 +1317,10 @@ def get_task_close_time2(task_id):
     cat = request.args.get('cat', None)
     conc = request.args.get('conc', None)
     profile = request.args.get('profile', None)
-    task = get_poi_trip_time2(lat, lon, time, task_id, cat, conc, profile)
+    num_poi = request.args.get('numpoi', None)
+    order = request.args.get('order', None)
+    #raise InvalidUsage('This view is gone', status_code=400, task_id=task_id)
+    task = get_poi_trip_time2_b(lat, lon, time, task_id, num_poi, order, cat, conc, profile)
     return task
 
 @app.route('/api/v1.0/poi_time_id', methods=['GET'])
@@ -1069,7 +1332,10 @@ def get_task_close_time(task_id):
     conc = request.args.get('conc', None)
     time = int(request.args.get('time', None))
     profile = request.args.get('profile', None)
-    task = get_poi_trip_time(poi_id, time, task_id, cat, conc, profile)
+    num_poi = request.args.get('numpoi', None)
+    order = request.args.get('order', None)
+    #raise InvalidUsage('This view is gone', status_code=400)
+    task = get_poi_trip_time_b(poi_id, time, task_id, cat, conc, profile, num_poi, order)
     return task
 
 @app.route('/api/v1.0/poi', methods=['GET'])
@@ -1078,32 +1344,37 @@ def get_task_close_time(task_id):
 def get_specific_poi(task_id):
     cat = request.args.get('cat', None)
     conc = request.args.get('conc', None)
-    if cat and conc:
-        cat = int(cat)
-        conc = int(conc)
-        task = get_specific_cat_conc(cat, conc, task_id)
-        return task
-    if cat:
-        cat = int(cat)
-        task = get_specific_category(cat, task_id)
-        return task
-    if conc:
-        conc = int(conc)
-        task = get_specific_concelho(conc, task_id)
-        return task
-    raise InvalidUsage(arg_missing, task_id, status_code=400)
-         
+    num_poi = request.args.get('numpoi', None)
+    score = request.args.get('score', None)
+    task = get_specific_cat_conc_b(cat, conc, task_id, num_poi, score)
+    return task
+ 
 @app.route('/api/v1.0/route_calc_id', methods=['GET'])
 @require_app_key
 @api_limit
 def route_calc_id(task_id):
     poi_id = int(request.args.get('id', None))
     start_time = int(request.args.get('start_time'))
-    m = int(request.args.get('dias', None))
+    m = int(request.args.get('days', None))
     duration = int(request.args.get('duration', None))
                             
-    task = route_calculator_id(m, duration, poi_id, start_time, task_id)
+    task = route_calculator_id(m, poi_id, start_time, duration, task_id)
     return task
+
+@app.route('/api/v1.0/route_calc_id2', methods=['GET'])
+@require_app_key
+@api_limit
+def route_calc_id2(task_id):
+    poi_id = int(request.args.get('id', None))
+    start_time = int(request.args.get('start_time'))
+    m = int(request.args.get('days', None))
+    duration = int(request.args.get('duration', None))
+    cat = str(request.args.get('cat', None))
+    conc = str(request.args.get('conc', None))
+                            
+    task = route_calculator_id2(m, poi_id, start_time, duration, task_id, cat, conc)
+    return task
+
 
 @app.route('/api/v1.0/route_calc_coord', methods=['GET'])
 @require_app_key
@@ -1112,14 +1383,27 @@ def route_calc_coord(task_id):
     lat  = float(request.args.get('lat', None))
     lon  = float(request.args.get('lon', None))
     start_time = int(request.args.get('start_time', None))
-    end_time = int(request.args.get('end_time', None))
-    cat = request.args.get('cat', None)
-    conc = request.args.get('conc', None)
-    m = int(request.args.get('dias', None))
-    Tmax = int(request.args.get('tempo', None))
-                            
-    task = route_calculator_coord(m, Tmax, lat, lon, start_time, end_time, cat, conc, task_id)
+    duration = int(request.args.get('duration', None))
+    m = int(request.args.get('days', None))                            
+    task = route_calculator_coord(m, lat, lon,  start_time, duration, task_id)
     return task
+
+
+@app.route('/api/v1.0/route_calc_coord2', methods=['GET'])
+@require_app_key
+@api_limit
+def route_calc_coord2(task_id):
+    lat  = float(request.args.get('lat', None))
+    lon  = float(request.args.get('lon', None))
+    start_time = int(request.args.get('start_time', None))
+    duration = int(request.args.get('duration', None))
+    m = int(request.args.get('days', None))
+    cat = str(request.args.get('cat', None))
+    conc = str(request.args.get('conc', None))
+    
+    task = route_calculator_coord2(m, lat, lon,  start_time, duration, task_id, cat, conc)
+    return task
+
 
 @app.route('/api/v1.0/osrm_poipoi', methods=['GET'])
 @require_app_key

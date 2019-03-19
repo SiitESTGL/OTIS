@@ -1,9 +1,23 @@
+$( document ).ready(function() {
+  
+  if ($('#poistate_radio_fut_0').is(':checked')) {
+    $('#poi_open_edit').attr("disabled","disabled");
+    $('#poi_close_edit').attr("disabled","disabled");
+    $('#button_addnew').attr("disabled","disabled");
+    $('#time_poi_open').attr("disabled","disabled");
+    $('#time_poi_close').attr("disabled","disabled");
+    document.getElementById("time_poi_remove").disabled = true;
+  };
+  
+});
+
+
 // Script creates dynamic fields for POIs open and close hours
 
-var max_fields = 15; // maximum input fields allowed
-var wrapper = $(".time_edit_field"); // fields wrapper
+var max_fields = 15;                    // maximum input fields allowed
+var wrapper = $(".time_edit_field");    // fields wrapper
 var add_button = $(".addNewField_btn"); // reference button ID
-var count_field = 1; // initial text box count
+var count_field = 1;                    // initial text box count
 
 // Function add New Fields------------------------------------
 $(add_button).click(function (e) {
@@ -14,10 +28,10 @@ $(add_button).click(function (e) {
         $(wrapper).append('<div class="form-group">' +
             '<label for="name" class="col-md-2 control-label"></label>' +
             '<div class="col-md-2">' +
-            '<input type="text" class="form-control time_poi_open"  name="poi_open[]" placeholder="open Hour">' +
+            '<input type="text" class="form-control time_poi_open_add" id="time_poi_open" name="poi_open[]" placeholder="open Hour">' +
             '</div><div class="col-md-2">' +
-            '<input type="text" class="form-control time_poi_close" name="poi_close[]"  placeholder="close Hour">' +
-            '</div><a href="#"<button type="button" class="remove_field btn-primary">Remove</button></a>' +
+            '<input type="text" class="form-control time_poi_close" id="time_poi_close" name="poi_close[]"  placeholder="close Hour">' +
+            '</div><a href="#" id="time_poi_remove" <button type="button" class="remove_field btn-primary">Remove</button></a>' +
             '</div>');
     }
 
@@ -29,12 +43,19 @@ $(add_button).click(function (e) {
         'timeFormat': 'H:i',
         'step': 30
     });
+	
+	$('.time_poi_open_add').timepicker({
+        'timeFormat': 'H:i',
+		'maxTime': '23:59',
+		'minTime': $('#poi_close_edit').val(),
+        'step': 30
+    });
 
     // temporarily disable the close time of poi
     $('.time_poi_close').prop('disabled', true);
 
     // when a open time is chosen
-    $('.time_poi_open').on('changeTime', function () {
+    $('.time_poi_open_add').on('changeTime', function () {
         // enable the end time input
         $('.time_poi_close').prop('disabled', false);
 
@@ -42,6 +63,7 @@ $(add_button).click(function (e) {
         // enable the input as a timepicker
         $('.time_poi_close').timepicker({
             timeFormat: 'H:i',
+			maxTime: '23:59',
             minTime: $(this).val(),
             showDuration: true,
             step: 30
@@ -52,12 +74,46 @@ $(add_button).click(function (e) {
 });
 
 // Remove  text box
-$(wrapper).on("click", ".remove_field", function (e) {
+$(wrapper).on("click", ".remove_field", function (e) { // user click on remove text
     e.preventDefault();
     $(this).parent('div').remove();
     count_field--;
 })
 
+//Enable or disables de open/close inputs
+$('#poistate_radio_fut_1').click(function()
+{
+  $('#poi_open_edit').removeAttr("disabled");
+  $('#poi_close_edit').removeAttr("disabled");
+  $('#button_addnew').removeAttr("disabled");
+  $('#time_poi_open').removeAttr("disabled");
+  $('#time_poi_close').removeAttr("disabled");
+  document.getElementById("time_poi_remove").disabled = false;
+  
+      $('.time_poi_open_add').on('changeTime', function () {
+        // enable the end time input
+        $('.time_poi_close').prop('disabled', false);
+
+        // enable the input as a timepicker
+        $('.time_poi_close').timepicker({
+            timeFormat: 'H:i',
+			maxTime: '23:59',
+            minTime: $(this).val(),
+            showDuration: true,
+            step: 30
+        });
+	  });
+});
+
+$('#poistate_radio_fut_0').click(function()
+{
+  $('#poi_open_edit').attr("disabled","disabled");
+  $('#poi_close_edit').attr("disabled","disabled");
+  $('#button_addnew').attr("disabled","disabled");
+  $('#time_poi_open').attr("disabled","disabled");
+  $('#time_poi_close').attr("disabled","disabled");
+  document.getElementById("time_poi_remove").disabled = true;
+});
 
 
 // Script creates dynamic images fields
@@ -84,7 +140,7 @@ $(add_img_field_btn).click(function (e)
 });
 
 // Remove  dynamic fields, when click on delete remove button
-$(wrapper_image).on("click", ".removebtn_img_field", function (e) {
+$(wrapper_image).on("click", ".removebtn_img_field", function (e) { // user click on remove text
     e.preventDefault();
     $(this).parent('div').remove();
     count_img_field--;
@@ -139,15 +195,9 @@ $('#poi_open_edit').timepicker({
  // enable the input as a timepicker
 $('#poi_close_edit').timepicker({
     timeFormat: 'H:i',
+	maxTime: '23:59',
     step: 30
 });
-
-// customize timepicker durations visit POI
-$("#visitduration").timepicker({
-    'timeFormat': 'H:i',
-    'step': 30
-});
-
 
 //-----------------------------------------------------------------------------------------------------------------+
 var responDista;
@@ -193,6 +243,7 @@ $.validator.addMethod // AddMethod(Function_name, function, message)
     }
 );
 
+
 // Validate POI Time
 $.validator.addMethod(
     "poitime",
@@ -231,7 +282,6 @@ var validator = $("#editPOI").validate(
                     } 
                 }
             }
-
         },
         poi_address:
         {
@@ -239,7 +289,6 @@ var validator = $("#editPOI").validate(
         },
         poi_phone:
         {
-            required:true,
             customphone:{
                 depends: function(element) {
                   if ($("#poi_phone").val() == "None"){
@@ -276,44 +325,19 @@ var validator = $("#editPOI").validate(
             }
           }
         },
-        lat_degree:
-        {
+		
+		lat_decimal:
+		{
             required:true,
-            digits: true,
+            number: true,
             range: [40, 42] // Degree > 40 and < 42
 
         },
-
-        lat_minute:
+		long_decimal:
         {
             required:true,
-            digits: true,
-            range: [0,59]
-        },
-        lat_second:
-        {
-            required:true,
-            digits: true,
-            range:[0,59]
-        },
-
-        long_degree:
-        {
-            required:true,
-            digits: true,
-            range: [6, 9] // Degree > 6 and < 9
-        },
-        long_minute:
-        {
-            required:true,
-            digits: true,
-            range: [0,59]
-        },
-        long_second:
-        {
-            required:true,
-            digits: true,
-            range:[0,59]
+            number: true,
+            range: [-9, -6] // Degree > -6 and < -9
         },
 
         poi_descri_pt_short:
@@ -399,7 +423,7 @@ var validator = $("#editPOI").validate(
         {
             minImageSize: [842, 402]
         }
-    },
+    }, // Close Rules
 
 
     messages:
@@ -428,39 +452,19 @@ var validator = $("#editPOI").validate(
           url:"Please enter a valid url (http://www.test.com)"
         },
 
-        lat_degree:{
+		lat_decimal:{
             required:"*",
-            digits: "Please enter  only digits",
+            number: "please, enter the coordinates with six decimal places",
             range: "please, the value must between 40 and  42"
 
         },
-
-        lat_minute:{
+        long_decimal:{
             required:"*",
-            digits: "Please enter  only digits",
-            range: "please, the value must between 0 and  59"
-        },
-        lat_second:{
-            required:"*",
-            digits: "Please enter  only digits",
-            range:"please, the value must between 0 and  59"
-        },
-        long_degree:{
-            required:"*",
-            digits: "Please enter  only digits",
-            range: "please, the value must between 6 and 9"
+            number: "please, enter the coordinates with six decimal places",
+            range: "please, the value must between -9 and -6"
 
         },
-        long_minute:{
-            required:"*",
-            digits: "Please enter  only digits",
-            range: "please, the value must between 0 and  59"
-        },
-        long_second:{
-            required:"*",
-            digits: "Please enter  only digits",
-            range:"please, the value must between 0 and  59"
-        },
+
         poi_descri_pt_short:{
             required: "*",
             minlength: "POI description must consist of at 10 characters"
@@ -577,7 +581,5 @@ var validator = $("#editPOI").validate(
                 validator_image.element($imageFile);
               }
         });
-
-
 
 // End Form validation---------------------------------------------------------------------------------------------+
